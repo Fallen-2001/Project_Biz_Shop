@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+<h:head>
+    <title>Produkty - Sklep</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .header { background: #f0f0f0; padding: 10px; margin-bottom: 20px; }
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .product-card { border: 1px solid #ddd; padding: 15px; border-radius: 5px; background: white; }
+        .product-card h3 { margin-top: 0; color: #333; }
+        .product-price { font-size: 1.2em; font-weight: bold; color: #007bff; }
+        .btn { padding: 8px 15px; margin: 5px 0; cursor: pointer; border: none; border-radius: 3px; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-info { background: #17a2b8; color: white; }
+        .product-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .product-table th, .product-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        .product-table th { background: #f2f2f2; }
+    </style>
+</h:head>
+<h:body>
+    <div class="header">
+        <h1>Sklep - Dostępne Produkty</h1>
+        <p>Witamy w naszym sklepie! Przeglądaj i kupuj nasze produkty.</p>
+    </div>
+
+    <!-- Widok w formie kart (nowoczesny) -->
+    <h:panelGroup rendered="#{not empty productController.products}">
+        <div class="product-grid">
+            <ui:repeat value="#{productController.products}" var="product"
+                       xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+                <div class="product-card">
+                    <h3>#{product.name}</h3>
+                    <div class="product-price">
+                        <h:outputText value="#{product.price}">
+                            <f:convertNumber pattern="#0.00 zł" />
+                        </h:outputText>
+                    </div>
+                    <h:form>
+                        <h:commandButton value="Dodaj do koszyka"
+                                         action="#{productController.addToCart(product)}"
+                                         styleClass="btn btn-success" />
+                    </h:form>
+                </div>
+            </ui:repeat>
+        </div>
+    </h:panelGroup>
+
+    <!-- Tabela produktów (klasyczny widok) -->
+    <h:panelGroup rendered="#{not empty productController.products}">
+        <h3>Lista produktów</h3>
+        <h:form>
+            <h:dataTable value="#{productController.products}" var="product"
+                         styleClass="product-table">
+                <h:column>
+                    <f:facet name="header">Nazwa</f:facet>
+                    #{product.name}
+                </h:column>
+                <h:column>
+                    <f:facet name="header">Cena</f:facet>
+                    <h:outputText value="#{product.price}">
+                        <f:convertNumber pattern="#0.00 zł" />
+                    </h:outputText>
+                </h:column>
+                <h:column>
+                    <f:facet name="header">Akcje</f:facet>
+                    <h:commandButton value="Dodaj do koszyka"
+                                     action="#{productController.addToCart(product)}"
+                                     styleClass="btn btn-success" />
+                </h:column>
+            </h:dataTable>
+        </h:form>
+    </h:panelGroup>
+
+    <!-- Komunikat gdy brak produktów -->
+    <h:panelGroup rendered="#{empty productController.products}">
+        <div style="text-align: center; padding: 50px;">
+            <h3>Brak dostępnych produktów</h3>
+            <p>Przepraszamy, aktualnie nie mamy produktów w ofercie.</p>
+        </div>
+    </h:panelGroup>
+
+    <!-- Informacja o wybranym produkcie -->
+    <h:panelGroup rendered="#{not empty productController.selectedProduct}">
+        <div style="margin-top: 20px; padding: 15px; background: #d4edda; border-radius: 5px;">
+            <h4>Dodano do koszyka:</h4>
+            <p><strong>#{productController.selectedProduct.name}</strong> -
+                <h:outputText value="#{productController.selectedProduct.price}">
+                    <f:convertNumber pattern="#0.00 zł" />
+                </h:outputText>
+            </p>
+        </div>
+    </h:panelGroup>
+
+    <!-- Linki nawigacyjne -->
+    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+        <h:link value="Powrót do logowania" outcome="/login" styleClass="btn btn-info" />
+    </div>
+
+</h:body>
+</html>
