@@ -1,9 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<persistence version="3.0" xmlns="https://jakarta.ee/xml/ns/persistence">
-    <persistence-unit name="examplePU" transaction-type="JTA">
+<persistence version="3.0" xmlns="https://jakarta.ee/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence
+             https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd">
+
+    <!-- Główny unit dla H2 (szybki start) -->
+    <persistence-unit name="shopPU" transaction-type="JTA">
+        <jta-data-source>jdbc/__default</jta-data-source>
+
+        <class>org.example.model.User</class>
+        <class>org.example.model.Product</class>
+        <class>org.example.model.CartItem</class>
+        <class>org.example.model.Order</class>
+        <class>org.example.model.OrderItem</class>
 
         <properties>
-            <property name="jakarta.persistence.schema-generation.database.action" value="none"/>
+            <!-- Strategia generowania bazy danych -->
+            <property name="jakarta.persistence.schema-generation.database.action" value="create"/>
+            <property name="jakarta.persistence.schema-generation.create-source" value="metadata"/>
+
+            <!-- H2 properties dla szybkiego startu -->
+            <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>
+            <property name="hibernate.show_sql" value="true"/>
+            <property name="hibernate.format_sql" value="true"/>
+            <property name="hibernate.hbm2ddl.auto" value="create"/>
+        </properties>
+    </persistence-unit>
+
+    <!-- Unit dla MySQL (gdy będzie skonfigurowane) -->
+    <persistence-unit name="shopPU-mysql" transaction-type="JTA">
+        <jta-data-source>java:comp/MySQLDataSource</jta-data-source>
+
+        <class>org.example.model.User</class>
+        <class>org.example.model.Product</class>
+        <class>org.example.model.CartItem</class>
+        <class>org.example.model.Order</class>
+        <class>org.example.model.OrderItem</class>
+
+        <properties>
+            <property name="jakarta.persistence.schema-generation.database.action" value="create"/>
+            <property name="jakarta.persistence.schema-generation.create-source" value="metadata"/>
+
+            <property name="hibernate.dialect" value="org.hibernate.dialect.MySQL8Dialect"/>
+            <property name="hibernate.show_sql" value="true"/>
+            <property name="hibernate.format_sql" value="true"/>
+            <property name="hibernate.hbm2ddl.auto" value="update"/>
+
+            <property name="hibernate.connection.CharSet" value="utf8"/>
+            <property name="hibernate.connection.characterEncoding" value="utf8"/>
+            <property name="hibernate.connection.useUnicode" value="true"/>
         </properties>
     </persistence-unit>
 </persistence>

@@ -1,18 +1,270 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:h="http://xmlns.jcp.org/jsf/html">
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
 <h:head>
-    <title>Вход</title>
+    <title>Logowanie - Sklep Online</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .login-header h1 {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .login-header p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .divider {
+            text-align: center;
+            margin: 1.5rem 0;
+            position: relative;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #e1e5e9;
+        }
+
+        .divider span {
+            background: white;
+            padding: 0 1rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            margin-top: 0.5rem;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .demo-credentials {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .demo-credentials h4 {
+            color: #495057;
+            margin-bottom: 0.5rem;
+        }
+
+        .demo-credentials p {
+            color: #6c757d;
+            margin: 0.25rem 0;
+        }
+
+        .alert {
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border-radius: 5px;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .alert-info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .messages {
+            margin-bottom: 1rem;
+        }
+
+        .footer-links {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e1e5e9;
+        }
+
+        .footer-links a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </h:head>
 <h:body>
-    <h:form>
-        <h:outputLabel value="login:" />
-        <h:inputText value="#{authController.username}" />
+    <div class="login-container">
+        <div class="login-header">
+            <h1>Sklep Online</h1>
+            <p>Zaloguj się do swojego konta</p>
+        </div>
 
-        <h:outputLabel value="password:" />
-        <h:inputSecret value="#{authController.password}" />
+        <!-- Komunikaty -->
+        <div class="messages">
+            <h:messages globalOnly="true" styleClass="alert alert-danger"
+                        rendered="#{not empty facesContext.messageList}"/>
 
-        <h:commandButton value="accept" action="#{authController.login()}" />
-    </h:form>
+            <ui:fragment rendered="#{param.error eq 'true'}">
+                <div class="alert alert-danger">
+                    Nieprawidłowa nazwa użytkownika lub hasło.
+                </div>
+            </ui:fragment>
+
+            <ui:fragment rendered="#{param.registered eq 'true'}">
+                <div class="alert alert-info">
+                    Rejestracja przebiegła pomyślnie! Możesz się teraz zalogować.
+                </div>
+            </ui:fragment>
+        </div>
+
+        <!-- Formularz logowania -->
+        <h:form id="loginForm">
+            <div class="form-group">
+                <h:outputLabel value="Nazwa użytkownika:" for="username"/>
+                <h:inputText id="username" value="#{authController.username}"
+                             required="true" requiredMessage="Nazwa użytkownika jest wymagana"
+                             placeholder="Wprowadź nazwę użytkownika"/>
+            </div>
+
+            <div class="form-group">
+                <h:outputLabel value="Hasło:" for="password"/>
+                <h:inputSecret id="password" value="#{authController.password}"
+                               required="true" requiredMessage="Hasło jest wymagane"
+                               placeholder="Wprowadź hasło"/>
+            </div>
+
+            <h:commandButton value="Zaloguj się" action="#{authController.login}"
+                             styleClass="btn"/>
+        </h:form>
+
+        <div class="divider">
+            <span>lub</span>
+        </div>
+
+        <!-- Przycisk rejestracji -->
+        <h:link outcome="/register" styleClass="btn btn-secondary"
+                style="display: inline-block; text-align: center; text-decoration: none;">
+            Załóż nowe konto
+        </h:link>
+
+        <!-- Demo credentials -->
+        <div class="demo-credentials">
+            <h4>Konta testowe:</h4>
+            <p><strong>Administrator:</strong> admin / admin</p>
+            <p><strong>Użytkownik:</strong> user / user</p>
+        </div>
+
+        <!-- Footer links -->
+        <div class="footer-links">
+            <h:link outcome="/user/products" value="Przeglądaj produkty jako gość"/>
+        </div>
+    </div>
+
+    <!-- Automatyczne wypełnienie formularza dla demo -->
+    <script>
+        function fillDemo(username, password) {
+            document.getElementById('loginForm:username').value = username;
+            document.getElementById('loginForm:password').value = password;
+        }
+
+        // Dodaj kliknięcia dla demo credentials
+        document.addEventListener('DOMContentLoaded', function() {
+            const demoCredentials = document.querySelector('.demo-credentials');
+            demoCredentials.addEventListener('click', function(e) {
+                if (e.target.textContent.includes('admin')) {
+                    fillDemo('admin', 'admin');
+                } else if (e.target.textContent.includes('user')) {
+                    fillDemo('user', 'user');
+                }
+            });
+        });
+    </script>
 </h:body>
 </html>

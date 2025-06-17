@@ -10,4 +10,7 @@ public interface AuthServiceInterface {
     User getCurrentUser();
     void setCurrentUser(User user);
     void logout();
+    boolean isLoggedIn();
+    boolean isAdmin();
+    boolean isUser();
 }

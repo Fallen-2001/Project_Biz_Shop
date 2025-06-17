@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+<h:head>
+    <title>Rejestracja - Sklep Online</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .register-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .register-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .register-header h1 {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .register-header p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            flex: 1;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group input.error {
+            border-color: #dc3545;
+        }
+
+        .form-group .help-text {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+
+        .required {
+            color: #dc3545;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-bottom: 0.5rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .alert {
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border-radius: 5px;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .messages {
+            margin-bottom: 1rem;
+        }
+
+        .footer-links {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e1e5e9;
+        }
+
+        .footer-links a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+
+        .password-strength {
+            height: 4px;
+            background: #e1e5e9;
+            border-radius: 2px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+
+        .password-strength-bar {
+            height: 100%;
+            transition: width 0.3s, background-color 0.3s;
+            width: 0%;
+            background: #dc3545;
+        }
+
+        .strength-weak { background: #dc3545 !important; width: 33%; }
+        .strength-medium { background: #ffc107 !important; width: 66%; }
+        .strength-strong { background: #28a745 !important; width: 100%; }
+    </style>
+</h:head>
+<h:body>
+    <div class="register-container">
+        <div class="register-header">
+            <h1>Rejestracja</h1>
+            <p>Załóż nowe konto w naszym sklepie</p>
+        </div>
+
+        <!-- Komunikaty -->
+        <div class="messages">
+            <h:messages globalOnly="true" styleClass="alert alert-danger"
+                        rendered="#{not empty facesContext.messageList}"/>
+        </div>
+
+        <!-- Formularz rejestracji -->
+        <h:form id="registerForm">
+            <!-- Podstawowe dane -->
+            <div class="form-group">
+                <h:outputLabel value="Nazwa użytkownika:" for="username"/>
+                <span class="required">*</span>
+                <h:inputText id="username" value="#{userController.newUser.username}"
+                             required="true" requiredMessage="Nazwa użytkownika jest wymagana"
+                             placeholder="Wprowadź nazwę użytkownika"
+                             onblur="checkUsername()">
+                    <f:ajax event="blur" listener="#{userController.checkUsernameAvailability}"
+                            render="usernameMessage"/>
+                </h:inputText>
+                <div class="help-text">Minimum 3 znaki, tylko litery i cyfry</div>
+                <h:message id="usernameMessage" for="username" styleClass="alert alert-danger"/>
+            </div>
+
+            <div class="form-group">
+                <h:outputLabel value="Hasło:" for="password"/>
+                <span class="required">*</span>
+                <h:inputSecret id="password" value="#{userController.newUser.password}"
+                               required="true" requiredMessage="Hasło jest wymagane"
+                               placeholder="Wprowadź hasło"
+                               onkeyup="checkPasswordStrength(this.value)"/>
+                <div class="password-strength">
+                    <div id="passwordStrengthBar" class="password-strength-bar"></div>
+                </div>
+                <div class="help-text">Minimum 6 znaków</div>
+            </div>
+
+            <div class="form-group">
+                <h:outputLabel value="Potwierdź hasło:" for="confirmPassword"/>
+                <span class="required">*</span>
+                <h:inputSecret id="confirmPassword" value="#{userController.confirmPassword}"
+                               required="true" requiredMessage="Potwierdzenie hasła jest wymagane"
+                               placeholder="Potwierdź hasło"
+                               onkeyup="checkPasswordMatch()"/>
+                <div id="passwordMatchMessage" class="help-text"></div>
+            </div>
+
+            <!-- Dane osobowe -->
+            <div class="form-row">
+                <div class="form-group">
+                    <h:outputLabel value="Imię:" for="firstName"/>
+                    <h:inputText id="firstName" value="#{userController.newUser.firstName}"
+                                 placeholder="Twoje imię"/>
+                </div>
+                <div class="form-group">
+                    <h:outputLabel value="Nazwisko:" for="lastName"/>
+                    <h:inputText id="lastName" value="#{userController.newUser.lastName}"
+                                 placeholder="Twoje nazwisko"/>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <h:outputLabel value="Email:" for="email"/>
+                <h:inputText id="email" value="#{userController.newUser.email}"
+                             placeholder="twoj@email.com"
+                             onblur="checkEmail()">
+                    <f:ajax event="blur" listener="#{userController.checkEmailAvailability}"
+                            render="emailMessage"/>
+                </h:inputText>
+                <div class="help-text">Opcjonalne, ale zalecane do powiadomień o zamówieniach</div>
+                <h:message id="emailMessage" for="email" styleClass="alert alert-danger"/>
+            </div>
+
+            <div class="form-group">
+                <h:outputLabel value="Telefon:" for="phone"/>
+                <h:inputText id="phone" value="#{userController.newUser.phone}"
+                             placeholder="+48 123 456 789"/>
+                <div class="help-text">Opcjonalne</div>
+            </div>
+
+            <div class="form-group">
+                <h:outputLabel value="Adres:" for="address"/>
+                <h:inputTextarea id="address" value="#{userController.newUser.address}"
+                                 rows="3" placeholder="Twój adres (opcjonalne)"/>
+                <div class="help-text">Opcjonalne, ale ułatwi składanie zamówień</div>
+            </div>
+
+            <!-- Przyciski -->
+            <h:commandButton value="Załóż konto" action="#{userController.register}"
+                             styleClass="btn" onclick="return validateForm()"/>
+
+            <h:link outcome="/login" styleClass="btn btn-secondary"
+                    style="display: inline-block; text-align: center; text-decoration: none;">
+                Mam już konto - Zaloguj się
+            </h:link>
+        </h:form>
+
+        <!-- Footer links -->
+        <div class="footer-links">
+            <h:link outcome="/user/products" value="Przeglądaj produkty jako gość"/>
+        </div>
+    </div>
+
+    <script>
+        //<![CDATA[
+        function checkPasswordStrength(password) {
+            const strengthBar = document.getElementById('passwordStrengthBar');
+            const strength = calculatePasswordStrength(password);
+
+            strengthBar.className = 'password-strength-bar';
+            if (strength >= 75) {
+                strengthBar.classList.add('strength-strong');
+            } else if (strength >= 50) {
+                strengthBar.classList.add('strength-medium');
+            } else if (strength >= 25) {
+                strengthBar.classList.add('strength-weak');
+            }
+        }
+
+        function calculatePasswordStrength(password) {
+            let strength = 0;
+            if (password.length >= 6) strength += 25;
+            if (password.length >= 10) strength += 25;
+            if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength += 25;
+            if (/\d/.test(password)) strength += 12.5;
+            if (/[^a-zA-Z\d]/.test(password)) strength += 12.5;
+            return Math.min(strength, 100);
+        }
+
+        function checkPasswordMatch() {
+            const password = document.getElementById('registerForm:password').value;
+            const confirmPassword = document.getElementById('registerForm:confirmPassword').value;
+            const messageDiv = document.getElementById('passwordMatchMessage');
+
+            if (confirmPassword.length > 0) {
+                if (password === confirmPassword) {
+                    messageDiv.textContent = '✓ Hasła są identyczne';
+                    messageDiv.style.color = '#28a745';
+                } else {
+                    messageDiv.textContent = '✗ Hasła nie są identyczne';
+                    messageDiv.style.color = '#dc3545';
+                }
+            } else {
+                messageDiv.textContent = '';
+            }
+        }
+
+        function validateForm() {
+            const password = document.getElementById('registerForm:password').value;
+            const confirmPassword = document.getElementById('registerForm:confirmPassword').value;
+            const username = document.getElementById('registerForm:username').value;
+
+            if (username.length < 3) {
+                alert('Nazwa użytkownika musi mieć co najmniej 3 znaki');
+                return false;
+            }
+
+            if (password.length < 6) {
+                alert('Hasło musi mieć co najmniej 6 znaków');
+                return false;
+            }
+
+            if (password !== confirmPassword) {
+                alert('Hasła muszą być identyczne');
+                return false;
+            }
+
+            return true;
+        }
+
+        function checkUsername() {
+            // Dodatkowa walidacja username po stronie klienta
+            const username = document.getElementById('registerForm:username').value;
+            if (username.length > 0 && username.length < 3) {
+                // Można dodać wizualną informację o błędzie
+            }
+        }
+
+        function checkEmail() {
+            // Dodatkowa walidacja email po stronie klienta
+            const email = document.getElementById('registerForm:email').value;
+            if (email.length > 0 && !email.includes('@')) {
+                // Można dodać wizualną informację o błędzie
+            }
+        }
+        //]]>
+    </script>
+</h:body>
+</html>

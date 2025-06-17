@@ -10,7 +10,7 @@ public interface ProductServiceInterface {
     List<Product> getProductsByCategory(String category);
     Optional<Product> getProductById(Long id);
     List<Product> searchProducts(String searchTerm);
-    void addProduct(Product product);
-    void updateProduct(Product product);
-    void deleteProduct(Long id);
+    void addProduct(Product product) throws Exception;
+    void updateProduct(Product product) throws Exception;
+    void deleteProduct(Long id) throws Exception;
 }
