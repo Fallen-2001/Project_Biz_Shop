@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+<h:head>
+    <title>Moje zamówienia - Sklep Online</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        .page-header {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .page-header h1 {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-header p {
+            color: #666;
+        }
+
+        .breadcrumb {
+            background: white;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .breadcrumb a {
+            color: #667eea;
+            text-decoration: none;
+            margin-right: 0.5rem;
+        }
+
+        .breadcrumb span {
+            color: #666;
+            margin-right: 0.5rem;
+        }
+
+        .orders-container {
+            display: grid;
+            gap: 2rem;
+        }
+
+        .order-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .order-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .order-header {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+            display: grid;
+            grid-template-columns: auto 1fr auto auto;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .order-number {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .order-date {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .order-status {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-confirmed { background: #d4edda; color: #155724; }
+        .status-shipped { background: #d1ecf1; color: #0c5460; }
+        .status-delivered { background: #d1e7dd; color: #0f5132; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+
+        .order-total {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #28a745;
+        }
+
+        .order-items {
+            padding: 1.5rem;
+        }
+
+        .order-items-header {
+            color: #333;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #e9ecef;
+            padding-bottom: 0.5rem;
+        }
+
+        .order-item {
+            display: grid;
+            grid-template-columns: 60px 1fr auto auto;
+            gap: 1rem;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid #f8f9fa;
+        }
+
+        .order-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-image {
+            width: 60px;
+            height: 60px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #666;
+        }
+
+        .item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .item-details h4 {
+            color: #333;
+            margin-bottom: 0.25rem;
+            font-size: 0.95rem;
+        }
+
+        .item-category {
+            color: #667eea;
+            font-size: 0.8rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .item-quantity {
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        .item-price {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .item-total {
+            font-weight: bold;
+            color: #28a745;
+            text-align: right;
+        }
+
+        .order-actions {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .order-summary-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .summary-item {
+            text-align: center;
+        }
+
+        .summary-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .summary-label {
+            color: #666;
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+        }
+
+        .empty-orders {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+
+        .empty-orders h3 {
+            color: #666;
+            margin-bottom: 1rem;
+        }
+
+        .empty-orders p {
+            color: #999;
+            margin-bottom: 2rem;
+        }
+
+        .messages {
+            margin-bottom: 2rem;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .alert-info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .shipping-info {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .shipping-info h5 {
+            color: #0056b3;
+            margin-bottom: 0.5rem;
+        }
+
+        .shipping-address {
+            color: #0056b3;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .order-header {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .order-item {
+                grid-template-columns: 50px 1fr;
+                gap: 1rem;
+            }
+
+            .item-price,
+            .item-total {
+                grid-column: 1 / -1;
+                text-align: left;
+                margin-top: 0.5rem;
+            }
+
+            .order-actions {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+
+            .order-summary-info {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .tracking-info {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .tracking-info h5 {
+            color: #856404;
+            margin-bottom: 0.5rem;
+        }
+
+        .order-progress {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 1rem 0;
+        }
+
+        .progress-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+        }
+
+        .progress-step.completed .progress-icon {
+            background: #28a745;
+            color: white;
+        }
+
+        .progress-step.active .progress-icon {
+            background: #667eea;
+            color: white;
+        }
+
+        .progress-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e9ecef;
+            color: #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-label {
+            font-size: 0.8rem;
+            text-align: center;
+        }
+
+        .progress-line {
+            height: 2px;
+            background: #e9ecef;
+            flex: 1;
+            margin: 0 0.5rem;
+            margin-top: -20px;
+        }
+
+        .progress-line.completed {
+            background: #28a745;
+        }
+    </style>
+</h:head>
+<h:body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">🛍️ Sklep Online</div>
+            <div class="user-info">
+                <span>Witaj, #{userController.currentUser.fullName}!</span>
+                <h:link outcome="/user/products" styleClass="btn btn-secondary">🛒 Kontynuuj zakupy</h:link>
+                <h:link outcome="/user/cart" styleClass="btn btn-warning">🛒 Koszyk</h:link>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <h:link outcome="/user/products" value="🛒 Produkty" />
+            <span>›</span>
+            <span>Moje zamówienia</span>
+        </div>
+
+        <!-- Header strony -->
+        <div class="page-header">
+            <h1>📦 Moje zamówienia</h1>
+            <p>Historia wszystkich Twoich zamówień i ich statusy</p>
+        </div>
+
+        <!-- Komunikaty -->
+        <div class="messages">
+            <h:messages globalOnly="true"
+                        infoClass="alert alert-success"
+                        errorClass="alert alert-danger"
+                        warnClass="alert alert-info"
+                        rendered="#{not empty facesContext.messageList}"/>
+        </div>
+
+        <!-- Lista zamówień -->
+        <h:panelGroup rendered="#{not empty orderController.userOrders}">
+            <div class="orders-container">
+                <ui:repeat value="#{orderController.userOrders}" var="order">
+                    <div class="order-card">
+                        <!-- Nagłówek zamówienia -->
+                        <div class="order-header">
+                            <div>
+                                <div class="order-number">Zamówienie ##{order.id}</div>
+                                <div class="order-date">
+                                    <h:outputText value="#{order.orderDate}">
+                                        <f:convertDateTime pattern="dd.MM.yyyy HH:mm" />
+                                    </h:outputText>
+                                </div>
+                            </div>
+
+                            <div></div> <!-- Spacer -->
+
+                            <div class="order-status #{orderController.getOrderStatusStyle(order.status).replace('background-color:', 'status-').replace(';', '').replace(' color:', '').replace('#856404', 'pending').replace('#155724', 'confirmed').replace('#0c5460', 'shipped').replace('#0f5132', 'delivered').replace('#721c24', 'cancelled')}">
+                                #{order.status.displayName}
+                            </div>
+
+                            <div class="order-total">
+                                <h:outputText value="#{order.totalAmount}">
+                                    <f:convertNumber pattern="#,##0.00 zł" />
+                                </h:outputText>
+                            </div>
+                        </div>
+
+                        <!-- Informacje o dostawie -->
+                        <h:panelGroup rendered="#{not empty order.shippingAddress}">
+                            <div class="shipping-info">
+                                <h5>📍 Adres dostawy:</h5>
+                                <div class="shipping-address">#{order.shippingAddress}</div>
+                            </div>
+                        </h:panelGroup>
+
+                        <!-- Progres zamówienia -->
+                        <div class="order-progress">
+                            <div class="progress-step #{order.status.ordinal() >= 0 ? 'completed' : ''}">
+                                <div class="progress-icon">📝</div>
+                                <div class="progress-label">Złożone</div>
+                            </div>
+                            <div class="progress-line #{order.status.ordinal() >= 1 ? 'completed' : ''}"></div>
+
+                            <div class="progress-step #{order.status.ordinal() >= 1 ? 'completed' : (order.status.ordinal() == 0 ? 'active' : '')}">
+                                <div class="progress-icon">✅</div>
+                                <div class="progress-label">Potwierdzone</div>
+                            </div>
+                            <div class="progress-line #{order.status.ordinal() >= 2 ? 'completed' : ''}"></div>
+
+                            <div class="progress-step #{order.status.ordinal() >= 2 ? 'completed' : (order.status.ordinal() == 1 ? 'active' : '')}">
+                                <div class="progress-icon">🚛</div>
+                                <div class="progress-label">Wysłane</div>
+                            </div>
+                            <div class="progress-line #{order.status.ordinal() >= 3 ? 'completed' : ''}"></div>
+
+                            <div class="progress-step #{order.status.ordinal() >= 3 ? 'completed' : (order.status.ordinal() == 2 ? 'active' : '')}">
+                                <div class="progress-icon">📦</div>
+                                <div class="progress-label">Dostarczone</div>
+                            </div>
+                        </div>
+
+                        <!-- Produkty w zamówieniu -->
+                        <div class="order-items">
+                            <h4 class="order-items-header">🛒 Produkty (#{order.orderItems.size()})</h4>
+
+                            <ui:repeat value="#{order.orderItems}" var="item">
+                                <div class="order-item">
+                                    <!-- Obrazek produktu -->
+                                    <div class="item-image">
+                                        <h:panelGroup rendered="#{not empty item.product.imageUrl}">
+                                            <img src="#{item.product.imageUrl}" alt="#{item.product.name}"
+                                                 onerror="this.style.display='none'; this.parentNode.innerHTML='📦'"/>
+                                        </h:panelGroup>
+                                        <h:panelGroup rendered="#{empty item.product.imageUrl}">
+                                            📦
+                                        </h:panelGroup>
+                                    </div>
+
+                                    <!-- Szczegóły produktu -->
+                                    <div class="item-details">
+                                        <h4>#{item.product.name}</h4>
+                                        <div class="item-category">#{item.product.category}</div>
+                                        <div class="item-quantity">Ilość: #{item.quantity} szt.</div>
+                                    </div>
+
+                                    <!-- Cena jednostkowa -->
+                                    <div class="item-price">
+                                        <h:outputText value="#{item.price}">
+                                            <f:convertNumber pattern="#,##0.00 zł" />
+                                        </h:outputText>
+                                        <div style="font-size: 0.8rem; color: #666;">za sztukę</div>
+                                    </div>
+
+                                    <!-- Suma za pozycję -->
+                                    <div class="item-total">
+                                        <h:outputText value="#{item.subtotal}">
+                                            <f:convertNumber pattern="#,##0.00 zł" />
+                                        </h:outputText>
+                                    </div>
+                                </div>
+                            </ui:repeat>
+                        </div>
+
+                        <!-- Akcje dla zamówienia -->
+                        <div class="order-actions">
+                            <div>
+                                <h:panelGroup rendered="#{order.status.name() == 'SHIPPED'}">
+                                    <div class="tracking-info">
+                                        <h5>📍 Śledzenie przesyłki</h5>
+                                        <p style="margin: 0; color: #856404;">
+                                            Twoja przesyłka jest w drodze. Oczekiwany czas dostawy: 1-2 dni robocze.
+                                        </p>
+                                    </div>
+                                </h:panelGroup>
+                            </div>
+
+                            <div style="display: flex; gap: 0.5rem;">
+                                <!-- Anuluj zamówienie -->
+                                <h:panelGroup rendered="#{orderController.canCancelOrder(order)}">
+                                    <h:form style="display: inline;">
+                                        <h:commandButton value="❌ Anuluj zamówienie"
+                                                         action="#{orderController.cancelOrder(order.id)}"
+                                                         styleClass="btn btn-danger"
+                                                         onclick="return confirm('Czy na pewno chcesz anulować to zamówienie?')"/>
+                                    </h:form>
+                                </h:panelGroup>
+
+                                <!-- Zamów ponownie -->
+                                <h:panelGroup rendered="#{order.status.name() == 'DELIVERED'}">
+                                    <button class="btn btn-success"
+                                            onclick="alert('Funkcja zamówienia ponownego będzie dostępna wkrótce!')">
+                                        🔄 Zamów ponownie
+                                    </button>
+                                </h:panelGroup>
+
+                                <!-- Pobierz fakturę -->
+                                <button class="btn btn-primary"
+                                        onclick="alert('Funkcja pobierania faktury będzie dostępna wkrótce!')">
+                                    📄 Pobierz fakturę
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </ui:repeat>
+            </div>
+        </h:panelGroup>
+
+        <!-- Brak zamówień -->
+        <h:panelGroup rendered="#{empty orderController.userOrders}">
+            <div class="empty-orders">
+                <h3>📦 Nie masz jeszcze żadnych zamówień</h3>
+                <p>Czas zacząć zakupy! Przeglądaj nasze produkty i złóż pierwsze zamówienie.</p>
+                <h:link outcome="/user/products" styleClass="btn btn-primary"
+                        style="font-size: 1.1rem; padding: 1rem 2rem;">
+                    🛒 Zacznij zakupy
+                </h:link>
+            </div>
+        </h:panelGroup>
+    </div>
+
+    <script>
+        //<![CDATA[
+        /* Auto-refresh co 2 minuty dla aktywnych zamówień */
+        setInterval(function() {
+            if (document.hidden) return;
+
+            const activeOrders = document.querySelectorAll('.status-pending, .status-confirmed, .status-shipped');
+            if (activeOrders.length > 0) {
+                console.log('Checking for order updates...');
+                /* Tutaj można dodać AJAX call do sprawdzenia statusów */
+            }
+        }, 120000);
+
+        /* Powiadomienia o zmianach statusu */
+        document.addEventListener('DOMContentLoaded', function() {
+            /* Sprawdź czy są nowe aktualizacje statusu */
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('updated') === 'true') {
+                const orderCard = document.querySelector('.order-card');
+                if (orderCard) {
+                    orderCard.style.border = '2px solid #28a745';
+                    setTimeout(() => {
+                        orderCard.style.border = '';
+                    }, 3000);
+                }
+            }
+        });
+
+        /* Obsługa śledzenia przesyłki */
+        function trackPackage(orderId) {
+            alert('Funkcja śledzenia przesyłki dla zamówienia #' + orderId + ' będzie dostępna wkrótce!');
+        }
+
+        /* Eksport zamówień do PDF */
+        function exportOrders() {
+            alert('Funkcja eksportu zamówień będzie dostępna wkrótce!');
+        }
+        //]]>
+    </script>
+</h:body>
+</html>

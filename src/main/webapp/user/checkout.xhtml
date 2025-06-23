@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+<h:head>
+    <title>Finalizacja zamówienia - Sklep Online</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        .breadcrumb {
+            background: white;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .breadcrumb a {
+            color: #667eea;
+            text-decoration: none;
+            margin-right: 0.5rem;
+        }
+
+        .breadcrumb span {
+            color: #666;
+            margin-right: 0.5rem;
+        }
+
+        .checkout-container {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 2rem;
+        }
+
+        .checkout-form {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .form-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .form-header h2 {
+            margin-bottom: 0.5rem;
+        }
+
+        .form-section {
+            padding: 2rem;
+        }
+
+        .section-title {
+            color: #333;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .required {
+            color: #dc3545;
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .help-text {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .order-summary {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            height: fit-content;
+            position: sticky;
+            top: 2rem;
+        }
+
+        .summary-header {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+            border-radius: 15px 15px 0 0;
+        }
+
+        .summary-header h3 {
+            color: #333;
+            margin: 0;
+        }
+
+        .summary-content {
+            padding: 1.5rem;
+        }
+
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .order-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-info h4 {
+            color: #333;
+            margin-bottom: 0.25rem;
+            font-size: 0.95rem;
+        }
+
+        .item-details {
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        .item-price {
+            font-weight: bold;
+            color: #28a745;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+            padding: 0.5rem 0;
+        }
+
+        .summary-row.total {
+            border-top: 2px solid #e9ecef;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+            margin-top: 1rem;
+            padding-top: 1rem;
+        }
+
+        .payment-options {
+            margin-bottom: 2rem;
+        }
+
+        .payment-option {
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .payment-option:hover {
+            border-color: #667eea;
+        }
+
+        .payment-option.selected {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .payment-option input[type="radio"] {
+            margin-right: 0.75rem;
+        }
+
+        .payment-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .payment-icon {
+            font-size: 1.5rem;
+            margin-right: 0.75rem;
+        }
+
+        .messages {
+            margin-bottom: 2rem;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .alert-warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+
+        .security-info {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .security-info h4 {
+            color: #0056b3;
+            margin-bottom: 0.5rem;
+        }
+
+        .security-info ul {
+            color: #0056b3;
+            font-size: 0.9rem;
+            margin-left: 1rem;
+        }
+
+        .checkout-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: space-between;
+            padding: 2rem;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+        }
+
+        @media (max-width: 768px) {
+            .checkout-container {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .order-summary {
+                position: static;
+                order: -1;
+            }
+
+            .checkout-actions {
+                flex-direction: column;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            color: #666;
+        }
+
+        .step.active {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .step.completed {
+            color: #28a745;
+        }
+
+        .step-number {
+            background: #e9ecef;
+            color: #666;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.5rem;
+            font-weight: bold;
+        }
+
+        .step.active .step-number {
+            background: #667eea;
+            color: white;
+        }
+
+        .step.completed .step-number {
+            background: #28a745;
+            color: white;
+        }
+
+        .step-separator {
+            width: 50px;
+            height: 2px;
+            background: #e9ecef;
+            margin: 0 1rem;
+        }
+
+        .step.completed + .step .step-separator {
+            background: #28a745;
+        }
+    </style>
+</h:head>
+<h:body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">🛍️ Sklep Online</div>
+            <div style="color: rgba(255,255,255,0.9);">
+                Finalizacja zamówienia dla #{userController.currentUser.fullName}
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <h:link outcome="/user/products" value="🛒 Produkty" />
+            <span>›</span>
+            <h:link outcome="/user/cart" value="Koszyk" />
+            <span>›</span>
+            <span>Finalizacja zamówienia</span>
+        </div>
+
+        <!-- Wskaźnik kroków -->
+        <div class="step-indicator">
+            <div class="step completed">
+                <div class="step-number">1</div>
+                <span>Koszyk</span>
+            </div>
+            <div class="step-separator"></div>
+            <div class="step active">
+                <div class="step-number">2</div>
+                <span>Dostawa i płatność</span>
+            </div>
+            <div class="step-separator"></div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <span>Potwierdzenie</span>
+            </div>
+        </div>
+
+        <!-- Komunikaty -->
+        <div class="messages">
+            <h:messages globalOnly="true"
+                        infoClass="alert alert-success"
+                        errorClass="alert alert-danger"
+                        warnClass="alert alert-warning"
+                        rendered="#{not empty facesContext.messageList}"/>
+        </div>
+
+        <!-- Sprawdzenie czy koszyk nie jest pusty -->
+        <h:panelGroup rendered="#{cartController.cartEmpty}">
+            <div class="alert alert-warning">
+                ⚠️ Twój koszyk jest pusty.
+                <h:link outcome="/user/products" value="Wróć do produktów" style="color: #856404; text-decoration: underline;"/>
+            </div>
+        </h:panelGroup>
+
+        <!-- Sprawdzenie czy można złożyć zamówienie -->
+        <h:panelGroup rendered="#{not cartController.cartEmpty and not cartController.canPlaceOrder}">
+            <div class="alert alert-danger">
+                ❌ Nie można złożyć zamówienia. Niektóre produkty w koszyku są niedostępne.
+                <h:link outcome="/user/cart" value="Wróć do koszyka" style="color: #721c24; text-decoration: underline;"/>
+            </div>
+        </h:panelGroup>
+
+        <!-- Formularz zamówienia -->
+        <h:panelGroup rendered="#{not cartController.cartEmpty and cartController.canPlaceOrder}">
+            <div class="checkout-container">
+                <!-- Formularz -->
+                <div class="checkout-form">
+                    <div class="form-header">
+                        <h2>📋 Dane zamówienia</h2>
+                        <p>Wypełnij dane potrzebne do realizacji zamówienia</p>
+                    </div>
+
+                    <h:form id="checkoutForm">
+                        <!-- Dane dostawy -->
+                        <div class="form-section">
+                            <h3 class="section-title">🚚 Adres dostawy</h3>
+
+                            <div class="form-group">
+                                <label for="shippingAddress">Pełny adres dostawy: <span class="required">*</span></label>
+                                <h:inputTextarea id="shippingAddress" value="#{orderController.shippingAddress}"
+                                                 required="true" requiredMessage="Adres dostawy jest wymagany"
+                                                 placeholder="Wprowadź pełny adres dostawy (ulica, numer, kod pocztowy, miasto)"
+                                                 rows="4"/>
+                                <div class="help-text">
+                                    Przykład: ul. Kwiatowa 15/23, 00-001 Warszawa
+                                </div>
+                            </div>
+
+                            <!-- Szybkie wypełnienie adresem z profilu -->
+                            <h:panelGroup rendered="#{not empty userController.currentUser.address}">
+                                <div style="background: #f8f9fa; padding: 1rem; border-radius: 5px; margin-bottom: 1rem;">
+                                    <strong>💡 Adres z Twojego profilu:</strong><br/>
+                                    #{userController.currentUser.address}
+                                    <br/>
+                                    <h:commandButton value="📋 Użyj tego adresu"
+                                                     onclick="document.getElementById('checkoutForm:shippingAddress').value = '#{userController.currentUser.address}'; return false;"
+                                                     styleClass="btn btn-secondary"
+                                                     style="margin-top: 0.5rem; font-size: 0.9rem; padding: 0.5rem 1rem;"/>
+                                </div>
+                            </h:panelGroup>
+
+                            <!-- Opcje dostawy -->
+                            <div class="form-group">
+                                <label>🚛 Sposób dostawy:</label>
+                                <div style="display: grid; gap: 0.5rem; margin-top: 0.5rem;">
+                                    <div style="background: #e7f8e7; padding: 1rem; border-radius: 5px; border: 2px solid #28a745;">
+                                        <strong>📦 Dostawa kurierska</strong><br/>
+                                        <span style="color: #666; font-size: 0.9rem;">
+                                            Czas dostawy: 1-3 dni robocze | Koszt: Bezpłatnie
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dane kontaktowe -->
+                        <div class="form-section">
+                            <h3 class="section-title">📞 Dane kontaktowe</h3>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div class="form-group">
+                                    <label for="firstName">Imię:</label>
+                                    <h:inputText id="firstName" value="#{userController.currentUser.firstName}"
+                                                 readonly="true" style="background: #f8f9fa;"/>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="lastName">Nazwisko:</label>
+                                    <h:inputText id="lastName" value="#{userController.currentUser.lastName}"
+                                                 readonly="true" style="background: #f8f9fa;"/>
+                                </div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div class="form-group">
+                                    <label for="email">Email:</label>
+                                    <h:inputText id="email" value="#{userController.currentUser.email}"
+                                                 readonly="true" style="background: #f8f9fa;"/>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="phone">Telefon:</label>
+                                    <h:inputText id="phone" value="#{userController.currentUser.phone}"
+                                                 readonly="true" style="background: #f8f9fa;"/>
+                                </div>
+                            </div>
+
+                            <div class="help-text">
+                                💡 Aby zmienić dane kontaktowe, zaktualizuj swój profil użytkownika.
+                            </div>
+                        </div>
+
+                        <!-- Metoda płatności -->
+                        <div class="form-section">
+                            <h3 class="section-title">💳 Sposób płatności</h3>
+
+                            <div class="payment-options">
+                                <div class="payment-option selected">
+                                    <div class="payment-info">
+                                        <input type="radio" name="payment" value="cod" checked="checked"/>
+                                        <span class="payment-icon">💵</span>
+                                        <div>
+                                            <strong>Płatność przy odbiorze</strong><br/>
+                                            <small style="color: #666;">Zapłać gotówką lub kartą kurierowi</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="payment-option" style="opacity: 0.6;">
+                                    <div class="payment-info">
+                                        <input type="radio" name="payment" value="card" disabled="disabled"/>
+                                        <span class="payment-icon">💳</span>
+                                        <div>
+                                            <strong>Płatność online</strong><br/>
+                                            <small style="color: #666;">Karta lub BLIK (wkrótce dostępne)</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Informacje o bezpieczeństwie -->
+                        <div class="form-section">
+                            <div class="security-info">
+                                <h4>🔒 Twoje dane są bezpieczne</h4>
+                                <ul>
+                                    <li>Wszystkie dane są szyfrowane</li>
+                                    <li>Nie przechowujemy danych kart płatniczych</li>
+                                    <li>Zamówienie można anulować do momentu wysyłki</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Akcje -->
+                        <div class="checkout-actions">
+                            <h:link outcome="/user/cart" styleClass="btn btn-secondary">
+                                ← Wróć do koszyka
+                            </h:link>
+
+                            <h:commandButton value="🎯 Złóż zamówienie"
+                                             action="#{orderController.placeOrder}"
+                                             styleClass="btn btn-success"
+                                             style="font-size: 1.1rem; padding: 1rem 2rem;"
+                                             onclick="return confirm('Czy na pewno chcesz złożyć zamówienie?')"/>
+                        </div>
+                    </h:form>
+                </div>
+
+                <!-- Podsumowanie zamówienia -->
+                <div class="order-summary">
+                    <div class="summary-header">
+                        <h3>📊 Podsumowanie zamówienia</h3>
+                    </div>
+
+                    <div class="summary-content">
+                        <!-- Lista produktów -->
+                        <ui:repeat value="#{cartController.cartItems}" var="item">
+                            <div class="order-item">
+                                <div class="item-info">
+                                    <h4>#{item.product.name}</h4>
+                                    <div class="item-details">#{item.quantity} ×
+                                        <h:outputText value="#{item.product.price}">
+                                            <f:convertNumber pattern="#,##0.00 zł" />
+                                        </h:outputText>
+                                    </div>
+                                </div>
+                                <div class="item-price">
+                                    <h:outputText value="#{item.subtotal}">
+                                        <f:convertNumber pattern="#,##0.00 zł" />
+                                    </h:outputText>
+                                </div>
+                            </div>
+                        </ui:repeat>
+
+                        <!-- Podsumowanie kosztów -->
+                        <div style="margin-top: 1rem; border-top: 1px solid #e9ecef; padding-top: 1rem;">
+                            <div class="summary-row">
+                                <span>Wartość produktów:</span>
+                                <span>
+                                    <h:outputText value="#{cartController.cartTotal}">
+                                        <f:convertNumber pattern="#,##0.00 zł" />
+                                    </h:outputText>
+                                </span>
+                            </div>
+
+                            <div class="summary-row">
+                                <span>Dostawa:</span>
+                                <span style="color: #28a745;">Bezpłatna</span>
+                            </div>
+
+                            <div class="summary-row total">
+                                <span>Do zapłaty:</span>
+                                <span>
+                                    <h:outputText value="#{cartController.cartTotal}">
+                                        <f:convertNumber pattern="#,##0.00 zł" />
+                                    </h:outputText>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Informacje dodatkowe -->
+                        <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e9ecef;">
+                            <h4 style="color: #333; margin-bottom: 1rem; font-size: 1rem;">📋 Informacje o zamówieniu</h4>
+                            <div style="color: #666; font-size: 0.9rem; line-height: 1.5;">
+                                <div style="margin-bottom: 0.5rem;">🏷️ Liczba produktów: #{cartController.cartItemsCount}</div>
+                                <div style="margin-bottom: 0.5rem;">📦 Łączna ilość: #{cartController.cartItemCount} szt.</div>
+                                <div style="margin-bottom: 0.5rem;">🚚 Czas dostawy: 1-3 dni robocze</div>
+                                <div>💵 Płatność: przy odbiorze</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </h:panelGroup>
+    </div>
+
+    <script>
+        //<![CDATA[
+        /* Obsługa wyboru metody płatności */
+        document.addEventListener('DOMContentLoaded', function() {
+            const paymentOptions = document.querySelectorAll('.payment-option');
+            paymentOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    if (this.querySelector('input[type="radio"]').disabled) return;
+
+                    paymentOptions.forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                    this.querySelector('input[type="radio"]').checked = true;
+                });
+            });
+        });
+
+        /* Walidacja przed wysłaniem */
+        function validateCheckout() {
+            const address = document.getElementById('checkoutForm:shippingAddress').value.trim();
+
+            if (address.length < 10) {
+                alert('Wprowadź pełny adres dostawy (minimum 10 znaków)');
+                return false;
+            }
+
+            return true;
+        }
+
+        /* Dodaj walidację do przycisku */
+        document.addEventListener('DOMContentLoaded', function() {
+            const submitBtn = document.querySelector('input[value*="Złóż zamówienie"]');
+            if (submitBtn) {
+                submitBtn.addEventListener('click', function(e) {
+                    if (!validateCheckout()) {
+                        e.preventDefault();
+                    }
+                });
+            }
+        });
+
+        /* Ostrzeżenie przed opuszczeniem strony */
+        window.addEventListener('beforeunload', function(e) {
+            e.returnValue = 'Czy na pewno chcesz opuścić stronę? Twoje zamówienie nie zostanie złożone.';
+        });
+        //]]>
+    </script>
+</h:body>
+</html>

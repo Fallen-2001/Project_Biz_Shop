@@ -1,87 +1,454 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="http://xmlns.jcp.org/jsf/html"
-      xmlns:f="http://xmlns.jcp.org/jsf/core">
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
 <h:head>
     <title>Zarządzanie produktami - Admin</title>
+    <meta charset="UTF-8"/>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .header { background: #f0f0f0; padding: 10px; margin-bottom: 20px; }
-        .add-form { background: #e8f4f8; padding: 15px; margin-bottom: 20px; }
-        .product-table { width: 100%; border-collapse: collapse; }
-        .product-table th, .product-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        .product-table th { background: #f2f2f2; }
-        .form-group { margin-bottom: 10px; }
-        .form-group label { display: inline-block; width: 100px; }
-        .btn { padding: 5px 10px; margin: 2px; cursor: pointer; }
-        .btn-primary { background: #007bff; color: white; border: none; }
-        .btn-danger { background: #dc3545; color: white; border: none; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            opacity: 0.9;
+        }
+
+        .add-form {
+            background: white;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .add-form h3 {
+            color: #333;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 0.5rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .required {
+            color: #dc3545;
+        }
+
+        .help-text {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+
+        .product-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .product-table th, .product-table td {
+            border: 1px solid #ddd;
+            padding: 1rem;
+            text-align: left;
+        }
+
+        .product-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .product-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            margin: 0.25rem;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .messages {
+            margin-bottom: 1rem;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .stock-indicator {
+            padding: 0.25rem 0.5rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .stock-high { background: #d4edda; color: #155724; }
+        .stock-medium { background: #fff3cd; color: #856404; }
+        .stock-low { background: #f8d7da; color: #721c24; }
+        .stock-out { background: #f1f3f4; color: #5f6368; }
+
+        .nav-links {
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        .nav-links a {
+            color: #667eea;
+            text-decoration: none;
+            margin: 0 1rem;
+            font-weight: 500;
+        }
+
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+
+        .product-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .inline-edit {
+            background: #f8f9fa !important;
+        }
+
+        .inline-edit input {
+            width: 80px;
+            padding: 0.25rem;
+            font-size: 0.9rem;
+        }
     </style>
 </h:head>
 <h:body>
-    <div class="header">
-        <h1>Panel Administratora - Zarządzanie Produktami</h1>
+    <div class="container">
+        <div class="header">
+            <h1>🛠️ Panel Administratora</h1>
+            <p>Zarządzanie produktami w sklepie</p>
+        </div>
+
+        <!-- Komunikaty -->
+        <div class="messages">
+            <h:messages globalOnly="true"
+                        infoClass="alert alert-success"
+                        errorClass="alert alert-danger"
+                        rendered="#{not empty facesContext.messageList}"/>
+        </div>
+
+        <!-- Formularz dodawania produktu -->
+        <div class="add-form">
+            <h3>➕ Dodaj nowy produkt</h3>
+            <h:form id="addProductForm">
+                <!-- Podstawowe informacje -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <h:outputLabel value="Nazwa produktu:" for="productName" />
+                        <span class="required">*</span>
+                        <h:inputText id="productName" value="#{adminController.newProduct.name}"
+                                     required="true" requiredMessage="Nazwa jest wymagana"
+                                     placeholder="Wprowadź nazwę produktu" />
+                        <div class="help-text">Minimum 3 znaki</div>
+                    </div>
+
+                    <div class="form-group">
+                        <h:outputLabel value="Cena (zł):" for="productPrice" />
+                        <span class="required">*</span>
+                        <h:inputText id="productPrice" value="#{adminController.newProduct.price}"
+                                     required="true" requiredMessage="Cena jest wymagana"
+                                     placeholder="0.00">
+                            <f:convertNumber pattern="#0.00" />
+                        </h:inputText>
+                        <div class="help-text">Wprowadź cenę w złotych</div>
+                    </div>
+                </div>
+
+                <!-- Kategoria i stock -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <h:outputLabel value="Kategoria:" for="productCategory" />
+                        <h:selectOneMenu id="productCategory" value="#{adminController.newProduct.category}">
+                            <f:selectItem itemLabel="Wybierz kategorię..." itemValue="" />
+                            <f:selectItems value="#{adminController.availableCategories}" />
+                        </h:selectOneMenu>
+                        <div class="help-text">Wybierz odpowiednią kategorię</div>
+                    </div>
+
+                    <div class="form-group">
+                        <h:outputLabel value="Ilość w magazynie:" for="productStock" />
+                        <span class="required">*</span>
+                        <h:inputText id="productStock" value="#{adminController.newProduct.stockQuantity}"
+                                     required="true" requiredMessage="Ilość w magazynie jest wymagana"
+                                     placeholder="10">
+                            <f:convertNumber integerOnly="true" />
+                        </h:inputText>
+                        <div class="help-text">Ile sztuk jest dostępnych</div>
+                    </div>
+                </div>
+
+                <!-- Opis -->
+                <div class="form-group">
+                    <h:outputLabel value="Opis produktu:" for="productDescription" />
+                    <h:inputTextarea id="productDescription" value="#{adminController.newProduct.description}"
+                                     placeholder="Wprowadź szczegółowy opis produktu..."
+                                     rows="4" />
+                    <div class="help-text">Szczegółowy opis produktu (opcjonalne)</div>
+                </div>
+
+                <!-- URL obrazka -->
+                <div class="form-group">
+                    <h:outputLabel value="URL obrazka:" for="productImage" />
+                    <h:inputText id="productImage" value="#{adminController.newProduct.imageUrl}"
+                                 placeholder="https://example.com/image.jpg" />
+                    <div class="help-text">Link do zdjęcia produktu (opcjonalne)</div>
+                </div>
+
+                <h:commandButton value="🚀 Dodaj produkt"
+                                 action="#{adminController.addProduct}"
+                                 styleClass="btn btn-primary" />
+            </h:form>
+        </div>
+
+        <!-- Lista produktów -->
+        <div style="background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <h3 style="color: #333; margin-bottom: 1.5rem; border-bottom: 2px solid #667eea; padding-bottom: 0.5rem;">
+                📦 Zarządzanie produktami
+            </h3>
+
+            <h:form id="productsForm">
+                <h:dataTable value="#{productController.products}" var="product"
+                             styleClass="product-table"
+                             rendered="#{not empty productController.products}">
+
+                    <h:column>
+                        <f:facet name="header">ID</f:facet>
+                        #{product.id}
+                    </h:column>
+
+                    <h:column>
+                        <f:facet name="header">Nazwa</f:facet>
+                        <strong>#{product.name}</strong>
+                        <br/>
+                        <small style="color: #666;">#{product.category}</small>
+                    </h:column>
+
+                    <h:column>
+                        <f:facet name="header">Cena</f:facet>
+                        <h:outputText value="#{product.price}" style="font-weight: bold; color: #28a745;">
+                            <f:convertNumber pattern="#0.00 zł" />
+                        </h:outputText>
+                    </h:column>
+
+                    <h:column>
+                        <f:facet name="header">Stan magazynu</f:facet>
+                        <h:panelGroup>
+                            <span class="stock-indicator #{product.stockQuantity > 10 ? 'stock-high' : (product.stockQuantity > 5 ? 'stock-medium' : (product.stockQuantity > 0 ? 'stock-low' : 'stock-out'))}">
+                                #{product.stockQuantity} szt.
+                            </span>
+                            <br/>
+                            <small style="color: #666;">
+                                <h:outputText value="✅ Dostępny" rendered="#{product.stockQuantity > 0}" />
+                                <h:outputText value="❌ Wyprzedany" rendered="#{product.stockQuantity == 0}" />
+                            </small>
+                        </h:panelGroup>
+                    </h:column>
+
+                    <h:column>
+                        <f:facet name="header">Status</f:facet>
+                        <h:panelGroup>
+                            <span style="color: #{product.active ? '#28a745' : '#dc3545'}; font-weight: bold;">
+                                #{product.active ? '🟢 Aktywny' : '🔴 Nieaktywny'}
+                            </span>
+                        </h:panelGroup>
+                    </h:column>
+
+                    <h:column>
+                        <f:facet name="header">Akcje</f:facet>
+                        <div class="product-actions">
+                            <h:commandButton value="❌ Usuń"
+                                             action="#{adminController.deleteProduct(product.id)}"
+                                             styleClass="btn btn-danger"
+                                             onclick="return confirm('Czy na pewno chcesz usunąć ten produkt?');" />
+
+                            <h:commandButton value="#{product.active ? '⏸️ Dezaktywuj' : '▶️ Aktywuj'}"
+                                             action="#{adminController.deactivateProduct(product.id)}"
+                                             styleClass="btn btn-warning" />
+                        </div>
+                    </h:column>
+
+                </h:dataTable>
+
+                <!-- Komunikat gdy brak produktów -->
+                <h:panelGroup rendered="#{empty productController.products}">
+                    <div style="text-align: center; padding: 3rem; color: #666;">
+                        <h3>📦 Brak produktów</h3>
+                        <p>Dodaj pierwszy produkt używając formularza powyżej.</p>
+                    </div>
+                </h:panelGroup>
+            </h:form>
+        </div>
+
+        <!-- Linki nawigacyjne -->
+        <div class="nav-links">
+            <h:link value="🏠 Strona główna" outcome="/index" />
+            <h:link value="🛒 Sklep" outcome="/user/products" />
+            <h:link value="🚪 Wyloguj" outcome="/login" />
+        </div>
     </div>
 
-    <!-- Formularz dodawania produktu -->
-    <div class="add-form">
-        <h3>Dodaj nowy produkt</h3>
-        <h:form>
-            <div class="form-group">
-                <h:outputLabel value="Nazwa: " for="productName" />
-                <h:inputText id="productName" value="#{adminController.newProduct.name}"
-                             required="true" requiredMessage="Nazwa jest wymagana" />
-            </div>
+    <script>
+        //<![CDATA[
+        /* Automatyczne odświeżanie co 30 sekund */
+        setInterval(function() {
+            console.log('Auto-refresh check...');
+        }, 30000);
 
-            <div class="form-group">
-                <h:outputLabel value="Cena: " for="productPrice" />
-                <h:inputText id="productPrice" value="#{adminController.newProduct.price}"
-                             required="true" requiredMessage="Cena jest wymagana">
-                    <f:convertNumber pattern="#0.00" />
-                </h:inputText>
-            </div>
+        /* Walidacja formularza po stronie klienta */
+        function validateProductForm() {
+            const name = document.getElementById('addProductForm:productName').value;
+            const price = document.getElementById('addProductForm:productPrice').value;
+            const stock = document.getElementById('addProductForm:productStock').value;
 
-            <h:commandButton value="Dodaj produkt"
-                             action="#{adminController.addProduct}"
-                             styleClass="btn btn-primary" />
-        </h:form>
-    </div>
+            if (name.length < 3) {
+                alert('Nazwa produktu musi mieć co najmniej 3 znaki');
+                return false;
+            }
 
-    <!-- Lista produktów -->
-    <div>
-        <h3>Aktualne produkty</h3>
-        <h:form>
-            <h:dataTable value="#{productController.products}" var="product"
-                         styleClass="product-table">
-                <h:column>
-                    <f:facet name="header">ID</f:facet>
-                    #{product.id}
-                </h:column>
-                <h:column>
-                    <f:facet name="header">Nazwa</f:facet>
-                    #{product.name}
-                </h:column>
-                <h:column>
-                    <f:facet name="header">Cena</f:facet>
-                    <h:outputText value="#{product.price}">
-                        <f:convertNumber pattern="#0.00 zł" />
-                    </h:outputText>
-                </h:column>
-                <h:column>
-                    <f:facet name="header">Akcje</f:facet>
-                    <h:commandButton value="Usuń"
-                                     action="#{adminController.deleteProduct(product.id)}"
-                                     styleClass="btn btn-danger"
-                                     onclick="return confirm('Czy na pewno chcesz usunąć ten produkt?');" />
-                </h:column>
-            </h:dataTable>
-        </h:form>
-    </div>
+            if (parseFloat(price) <= 0) {
+                alert('Cena musi być większa od 0');
+                return false;
+            }
 
-    <!-- Linki nawigacyjne -->
-    <div style="margin-top: 20px;">
-        <h:link value="Powrót do logowania" outcome="/login" />
-    </div>
+            if (parseInt(stock) < 0) {
+                alert('Ilość w magazynie nie może być ujemna');
+                return false;
+            }
 
+            return true;
+        }
+
+        /* Dodaj walidację do przycisku */
+        document.addEventListener('DOMContentLoaded', function() {
+            const submitBtn = document.querySelector('input[value="🚀 Dodaj produkt"]');
+            if (submitBtn) {
+                submitBtn.addEventListener('click', function(e) {
+                    if (!validateProductForm()) {
+                        e.preventDefault();
+                    }
+                });
+            }
+        });
+        //]]>
+    </script>
 </h:body>
 </html>

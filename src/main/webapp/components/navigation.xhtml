@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+
+<!-- Globalny komponent nawigacji do użycia na wszystkich stronach -->
+<ui:composition>
+    <style>
+        .main-navigation {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-decoration: none;
+            color: white;
+        }
+
+        .nav-logo:hover {
+            color: rgba(255,255,255,0.8);
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-item {
+            position: relative;
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-link:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateY(-1px);
+        }
+
+        .nav-link.active {
+            background: rgba(255,255,255,0.2);
+            font-weight: 600;
+        }
+
+        .cart-badge {
+            background: #ff4757;
+            color: white;
+            border-radius: 50%;
+            padding: 0.2rem 0.5rem;
+            font-size: 0.8rem;
+            font-weight: bold;
+            min-width: 1.2rem;
+            text-align: center;
+            position: absolute;
+            top: -5px;
+            right: -5px;
+        }
+
+        .user-menu {
+            position: relative;
+        }
+
+        .user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            color: #333;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            min-width: 200px;
+            display: none;
+            z-index: 1000;
+        }
+
+        .user-menu:hover .user-dropdown {
+            display: block;
+        }
+
+        .dropdown-item {
+            display: block;
+            padding: 0.75rem 1rem;
+            color: #333;
+            text-decoration: none;
+            border-bottom: 1px solid #e9ecef;
+            transition: background 0.2s;
+        }
+
+        .dropdown-item:hover {
+            background: #f8f9fa;
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .nav-content {
+                flex-wrap: wrap;
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .nav-links {
+                width: 100%;
+                flex-direction: column;
+                margin-top: 1rem;
+                display: none;
+            }
+
+            .nav-links.mobile-open {
+                display: flex;
+            }
+
+            .nav-item {
+                width: 100%;
+            }
+
+            .nav-link {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        .breadcrumb-nav {
+            background: white;
+            padding: 1rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .breadcrumb-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .breadcrumb-list {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            color: #666;
+        }
+
+        .breadcrumb-item a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .breadcrumb-item a:hover {
+            text-decoration: underline;
+        }
+
+        .breadcrumb-separator {
+            color: #999;
+        }
+    </style>
+
+    <!-- Główna nawigacja -->
+    <nav class="main-navigation">
+        <div class="nav-content">
+            <!-- Logo -->
+            <h:link outcome="/index" styleClass="nav-logo">
+                🛍️ Sklep Online
+            </h:link>
+
+            <!-- Przycisk menu mobilnego -->
+            <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+                ☰
+            </button>
+
+            <!-- Linki nawigacyjne -->
+            <ul class="nav-links" id="navLinks">
+                <!-- Produkty - zawsze widoczne -->
+                <li class="nav-item">
+                    <h:link outcome="/user/products" styleClass="nav-link">
+                        🛒 Produkty
+                    </h:link>
+                </li>
+
+                <!-- Dla zalogowanych użytkowników -->
+                <h:panelGroup rendered="#{userController.loggedIn}">
+                    <!-- Koszyk z licznikiem -->
+                    <li class="nav-item">
+                        <h:link outcome="/user/cart" styleClass="nav-link">
+                            🛒 Koszyk
+                            <h:panelGroup rendered="#{cartController.cartItemCount > 0}">
+                                <span class="cart-badge">#{cartController.cartItemCount}</span>
+                            </h:panelGroup>
+                        </h:link>
+                    </li>
+
+                    <!-- Zamówienia -->
+                    <li class="nav-item">
+                        <h:link outcome="/user/orders" styleClass="nav-link">
+                            📦 Zamówienia
+                        </h:link>
+                    </li>
+
+                    <!-- Menu użytkownika -->
+                    <li class="nav-item user-menu">
+                        <a href="#" class="nav-link">
+                            👤 #{userController.getUserDisplayName()}
+                        </a>
+                        <div class="user-dropdown">
+                            <h:link outcome="/user/profile" styleClass="dropdown-item">
+                                👤 Mój profil
+                            </h:link>
+                            <h:link outcome="/user/orders" styleClass="dropdown-item">
+                                📦 Moje zamówienia
+                            </h:link>
+                            <h:panelGroup rendered="#{userController.admin}">
+                                <h:link outcome="/admin/products" styleClass="dropdown-item">
+                                    🛠️ Panel admina
+                                </h:link>
+                            </h:panelGroup>
+                            <div style="border-top: 1px solid #e9ecef; margin: 0.5rem 0;"></div>
+                            <h:link outcome="/login" styleClass="dropdown-item">
+                                🚪 Wyloguj się
+                            </h:link>
+                        </div>
+                    </li>
+                </h:panelGroup>
+
+                <!-- Dla niezalogowanych -->
+                <h:panelGroup rendered="#{not userController.loggedIn}">
+                    <li class="nav-item">
+                        <h:link outcome="/login" styleClass="nav-link">
+                            🔑 Zaloguj się
+                        </h:link>
+                    </li>
+                    <li class="nav-item">
+                        <h:link outcome="/register" styleClass="nav-link">
+                            📝 Rejestracja
+                        </h:link>
+                    </li>
+                </h:panelGroup>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Breadcrumb navigation (opcjonalny) -->
+    <ui:fragment rendered="#{param.showBreadcrumb != 'false'}">
+        <div class="breadcrumb-nav">
+            <div class="breadcrumb-content">
+                <ul class="breadcrumb-list">
+                    <li class="breadcrumb-item">
+                        <h:link outcome="/index" value="🏠 Strona główna" />
+                    </li>
+
+                    <ui:fragment rendered="#{param.breadcrumb1 != null}">
+                        <li class="breadcrumb-separator">›</li>
+                        <li class="breadcrumb-item">
+                            <h:panelGroup rendered="#{param.breadcrumb1Link != null}">
+                                <h:link outcome="#{param.breadcrumb1Link}" value="#{param.breadcrumb1}" />
+                            </h:panelGroup>
+                            <h:panelGroup rendered="#{param.breadcrumb1Link == null}">
+                                #{param.breadcrumb1}
+                            </h:panelGroup>
+                        </li>
+                    </ui:fragment>
+
+                    <ui:fragment rendered="#{param.breadcrumb2 != null}">
+                        <li class="breadcrumb-separator">›</li>
+                        <li class="breadcrumb-item">
+                            <h:panelGroup rendered="#{param.breadcrumb2Link != null}">
+                                <h:link outcome="#{param.breadcrumb2Link}" value="#{param.breadcrumb2}" />
+                            </h:panelGroup>
+                            <h:panelGroup rendered="#{param.breadcrumb2Link == null}">
+                                #{param.breadcrumb2}
+                            </h:panelGroup>
+                        </li>
+                    </ui:fragment>
+
+                    <ui:fragment rendered="#{param.breadcrumb3 != null}">
+                        <li class="breadcrumb-separator">›</li>
+                        <li class="breadcrumb-item">#{param.breadcrumb3}</li>
+                    </ui:fragment>
+                </ul>
+            </div>
+        </div>
+    </ui:fragment>
+
+    <script>
+        //<![CDATA[
+        function toggleMobileMenu() {
+            const navLinks = document.getElementById('navLinks');
+            navLinks.classList.toggle('mobile-open');
+        }
+
+        /* Zamknij menu mobilne przy kliknięciu poza nim */
+        document.addEventListener('click', function(e) {
+            const navLinks = document.getElementById('navLinks');
+            const toggle = document.querySelector('.mobile-menu-toggle');
+
+            if (!navLinks.contains(e.target) && !toggle.contains(e.target)) {
+                navLinks.classList.remove('mobile-open');
+            }
+        });
+
+        /* Podświetl aktywną stronę */
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.nav-link');
+
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href && currentPath.includes(href)) {
+                    link.classList.add('active');
+                }
+            });
+        });
+
+        /* Aktualizuj licznik koszyka dynamicznie */
+        function updateCartCount() {
+            /* Tutaj można dodać AJAX call do sprawdzenia aktualnej liczby produktów */
+            console.log('Checking cart count...');
+        }
+
+        /* Sprawdzaj licznik co 30 sekund */
+        setInterval(updateCartCount, 30000);
+        //]]>
+    </script>
+</ui:composition>
+</html>

@@ -71,20 +71,38 @@ public class ProductServiceImpl implements ProductServiceInterface {
 
         logger.debug("Adding new product: {}", product.getName());
 
-        // Ustaw domyślne wartości
-        if (product.getStockQuantity() == null) {
-            product.setStockQuantity(0);
+        // Ustaw domyślne wartości - poprawione aby zawsze były sensowne wartości
+        if (product.getStockQuantity() == null || product.getStockQuantity() < 0) {
+            product.setStockQuantity(10); // Domyślnie 10 sztuk zamiast 0
+            logger.debug("Set default stock quantity: 10 for product: {}", product.getName());
         }
-        if (!product.isActive()) { // Zmienione z getActive() na isActive()
-            product.setActive(true);
+
+        if (product.getCategory() == null || product.getCategory().trim().isEmpty()) {
+            product.setCategory("Różne");
+            logger.debug("Set default category: Różne for product: {}", product.getName());
+        }
+
+        if (product.getDescription() == null || product.getDescription().trim().isEmpty()) {
+            product.setDescription("Opis produktu");
+            logger.debug("Set default description for product: {}", product.getName());
+        }
+
+        // Zawsze ustaw produkt jako aktywny przy dodawaniu
+        product.setActive(true);
+
+        // Znormalizuj dane
+        product.setName(product.getName().trim());
+        product.setCategory(product.getCategory().trim());
+        if (product.getDescription() != null) {
+            product.setDescription(product.getDescription().trim());
         }
 
         try {
             productDao.save(product);
-            logger.info("Product added successfully: {}", product.getName());
+            logger.info("Product added successfully: {} with stock: {}", product.getName(), product.getStockQuantity());
         } catch (Exception e) {
             logger.error("Error adding product: {}", product.getName(), e);
-            throw new Exception("Błąd podczas dodawania produktu", e);
+            throw new Exception("Błąd podczas dodawania produktu: " + e.getMessage(), e);
         }
     }
 
@@ -105,12 +123,18 @@ public class ProductServiceImpl implements ProductServiceInterface {
             throw new Exception("Produkt nie został znaleziony");
         }
 
+        // Walidacja stockQuantity przy aktualizacji
+        if (product.getStockQuantity() == null || product.getStockQuantity() < 0) {
+            product.setStockQuantity(0);
+            logger.warn("Stock quantity was null or negative, set to 0 for product: {}", product.getId());
+        }
+
         try {
             productDao.update(product);
-            logger.info("Product updated successfully: {}", product.getId());
+            logger.info("Product updated successfully: {} with stock: {}", product.getId(), product.getStockQuantity());
         } catch (Exception e) {
             logger.error("Error updating product: {}", product.getId(), e);
-            throw new Exception("Błąd podczas aktualizacji produktu", e);
+            throw new Exception("Błąd podczas aktualizacji produktu: " + e.getMessage(), e);
         }
     }
 
@@ -135,7 +159,7 @@ public class ProductServiceImpl implements ProductServiceInterface {
             logger.info("Product deleted successfully: {}", id);
         } catch (Exception e) {
             logger.error("Error deleting product: {}", id, e);
-            throw new Exception("Błąd podczas usuwania produktu", e);
+            throw new Exception("Błąd podczas usuwania produktu: " + e.getMessage(), e);
         }
     }
 
@@ -149,10 +173,12 @@ public class ProductServiceImpl implements ProductServiceInterface {
         }
 
         Product product = productOpt.get();
-        product.setActive(false);
+        boolean wasActive = product.isActive();
+        product.setActive(!wasActive); // Toggle status
         productDao.update(product);
 
-        logger.info("Product deactivated: {}", id);
+        String action = wasActive ? "deactivated" : "activated";
+        logger.info("Product {}: {}", action, id);
     }
 
     @Transactional
@@ -176,7 +202,7 @@ public class ProductServiceImpl implements ProductServiceInterface {
         validateAdminAccess();
 
         if (newStock == null || newStock < 0) {
-            throw new Exception("Stan magazynowy musi być liczbą dodatnią");
+            throw new Exception("Stan magazynowy musi być liczbą nieujemną");
         }
 
         Optional<Product> productOpt = productDao.findById(productId);
@@ -195,7 +221,7 @@ public class ProductServiceImpl implements ProductServiceInterface {
     public List<String> getAllCategories() {
         // W rzeczywistej implementacji można by dodać osobną metodę w DAO
         // Tymczasowo zwracamy przykładowe kategorie
-        return List.of("Elektronika", "Odzież", "Dom i ogród", "Sport", "Książki", "Zabawki");
+        return List.of("Elektronika", "Odzież", "Dom i ogród", "Sport", "Książki", "Zabawki", "Różne");
     }
 
     public List<Product> getLowStockProducts(int threshold) throws Exception {
@@ -204,6 +230,17 @@ public class ProductServiceImpl implements ProductServiceInterface {
         return productDao.findAll().stream()
                 .filter(product -> product.getStockQuantity() != null && product.getStockQuantity() <= threshold)
                 .toList();
+    }
+
+    // Nowa metoda pomocnicza do sprawdzania dostępności produktu
+    public boolean isProductAvailable(Long productId, int requestedQuantity) {
+        Optional<Product> productOpt = productDao.findById(productId);
+        if (productOpt.isEmpty()) {
+            return false;
+        }
+
+        Product product = productOpt.get();
+        return product.isActive() && product.isAvailable(requestedQuantity);
     }
 
     private void validateAdminAccess() throws Exception {
@@ -225,6 +262,10 @@ public class ProductServiceImpl implements ProductServiceInterface {
             throw new Exception("Nazwa produktu jest wymagana");
         }
 
+        if (product.getName().trim().length() < 3) {
+            throw new Exception("Nazwa produktu musi mieć co najmniej 3 znaki");
+        }
+
         if (product.getName().trim().length() > 255) {
             throw new Exception("Nazwa produktu jest za długa (max 255 znaków)");
         }
@@ -238,7 +279,7 @@ public class ProductServiceImpl implements ProductServiceInterface {
         }
 
         if (product.getPrice().compareTo(new BigDecimal("999999.99")) > 0) {
-            throw new Exception("Cena produktu jest za wysoka");
+            throw new Exception("Cena produktu jest za wysoka (max 999999.99)");
         }
 
         if (product.getDescription() != null && product.getDescription().length() > 1000) {
@@ -249,8 +290,17 @@ public class ProductServiceImpl implements ProductServiceInterface {
             throw new Exception("Kategoria jest za długa (max 100 znaków)");
         }
 
+        // Poprawiona walidacja stockQuantity
         if (product.getStockQuantity() != null && product.getStockQuantity() < 0) {
             throw new Exception("Stan magazynowy nie może być ujemny");
+        }
+
+        // Walidacja URL obrazka jeśli został podany
+        if (product.getImageUrl() != null && !product.getImageUrl().trim().isEmpty()) {
+            String url = product.getImageUrl().trim();
+            if (!url.startsWith("http://") && !url.startsWith("https://")) {
+                throw new Exception("URL obrazka musi zaczynać się od http:// lub https://");
+            }
         }
     }
 }

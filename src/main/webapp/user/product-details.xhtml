@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+<h:head>
+    <title>#{productController.selectedProduct.name} - Sklep Online</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        .breadcrumb {
+            background: white;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .breadcrumb a {
+            color: #667eea;
+            text-decoration: none;
+            margin-right: 0.5rem;
+        }
+
+        .breadcrumb span {
+            color: #666;
+            margin-right: 0.5rem;
+        }
+
+        .product-details-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .product-gallery {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+        }
+
+        .product-image {
+            height: 500px;
+            background: linear-gradient(135deg, #f1f3f4 0%, #e8eaf0 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .product-image .placeholder {
+            font-size: 8rem;
+            color: #666;
+            opacity: 0.5;
+        }
+
+        .zoom-overlay {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+
+        .product-info {
+            padding: 3rem;
+        }
+
+        .product-category {
+            color: #667eea;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+        }
+
+        .product-title {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 1rem;
+            line-height: 1.3;
+        }
+
+        .product-price {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #28a745;
+            margin-bottom: 1.5rem;
+        }
+
+        .stock-status {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 600;
+            margin-bottom: 2rem;
+        }
+
+        .stock-high { background: #d4edda; color: #155724; }
+        .stock-medium { background: #fff3cd; color: #856404; }
+        .stock-low { background: #f8d7da; color: #721c24; }
+        .stock-out { background: #f1f3f4; color: #5f6368; }
+
+        .product-description {
+            color: #666;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 2rem;
+        }
+
+        .purchase-section {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+
+        .quantity-section {
+            margin-bottom: 2rem;
+        }
+
+        .quantity-section label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .quantity-selector {
+            display: flex;
+            align-items: center;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .quantity-selector button {
+            background: #f8f9fa;
+            border: none;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.2rem;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+
+        .quantity-selector button:hover:not(:disabled) {
+            background: #e9ecef;
+        }
+
+        .quantity-selector button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .quantity-selector input {
+            border: none;
+            width: 80px;
+            text-align: center;
+            height: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .quantity-info {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+            font-size: 1.3rem;
+            padding: 1.25rem 3rem;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .product-features {
+            margin-bottom: 2rem;
+        }
+
+        .features-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 0.5rem;
+        }
+
+        .features-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .feature-icon {
+            font-size: 1.2rem;
+            margin-right: 0.75rem;
+            color: #28a745;
+        }
+
+        .related-products {
+            margin-top: 3rem;
+            padding-top: 3rem;
+            border-top: 2px solid #e9ecef;
+        }
+
+        .related-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .related-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .related-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .related-item img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .related-item .placeholder {
+            width: 80px;
+            height: 80px;
+            background: #e9ecef;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 2rem;
+            color: #666;
+        }
+
+        .messages {
+            margin-bottom: 2rem;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        @media (max-width: 768px) {
+            .product-gallery {
+                grid-template-columns: 1fr;
+            }
+
+            .product-image {
+                height: 300px;
+            }
+
+            .product-info {
+                padding: 2rem 1.5rem;
+            }
+
+            .product-title {
+                font-size: 1.5rem;
+            }
+
+            .product-price {
+                font-size: 2rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .quantity-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .features-list {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #666;
+        }
+
+        .cart-badge {
+            background: #ff4757;
+            color: white;
+            border-radius: 50%;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+            font-weight: bold;
+            min-width: 1.5rem;
+            text-align: center;
+        }
+
+        .product-meta {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .meta-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .meta-label {
+            font-weight: 500;
+            color: #0056b3;
+        }
+
+        .meta-value {
+            color: #0056b3;
+        }
+    </style>
+</h:head>
+<h:body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">🛍️ Sklep Online</div>
+            <div class="user-info">
+                <h:panelGroup rendered="#{userController.loggedIn}">
+                    <span>Witaj, #{userController.currentUser.fullName}!</span>
+                    <h:link outcome="/user/cart" styleClass="btn btn-warning">
+                        🛒 Koszyk
+                        <h:panelGroup rendered="#{cartController.cartItemCount > 0}">
+                            <span class="cart-badge">#{cartController.cartItemCount}</span>
+                        </h:panelGroup>
+                    </h:link>
+                    <h:link outcome="/user/orders" styleClass="btn btn-secondary">📦 Zamówienia</h:link>
+                </h:panelGroup>
+
+                <h:panelGroup rendered="#{not userController.loggedIn}">
+                    <h:link outcome="/login" styleClass="btn btn-primary">🔑 Zaloguj</h:link>
+                    <h:link outcome="/register" styleClass="btn btn-secondary">📝 Rejestracja</h:link>
+                </h:panelGroup>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <h:link outcome="/user/products" value="🛒 Produkty" />
+            <span>›</span>
+            <h:panelGroup rendered="#{not empty productController.selectedProduct}">
+                <span>#{productController.selectedProduct.category}</span>
+                <span>›</span>
+                <span>#{productController.selectedProduct.name}</span>
+            </h:panelGroup>
+        </div>
+
+        <!-- Komunikaty -->
+        <div class="messages">
+            <h:messages globalOnly="true"
+                        infoClass="alert alert-success"
+                        errorClass="alert alert-danger"
+                        rendered="#{not empty facesContext.messageList}"/>
+        </div>
+
+        <!-- Sprawdzenie czy produkt istnieje -->
+        <h:panelGroup rendered="#{empty productController.selectedProduct}">
+            <div class="loading">
+                <h3>🔍 Produkt nie został znaleziony</h3>
+                <p>Sprawdź czy link jest poprawny lub wróć do listy produktów.</p>
+                <h:link outcome="/user/products" styleClass="btn btn-primary">
+                    🛒 Wróć do produktów
+                </h:link>
+            </div>
+        </h:panelGroup>
+
+        <!-- Szczegóły produktu -->
+        <h:panelGroup rendered="#{not empty productController.selectedProduct}">
+            <div class="product-details-container">
+                <div class="product-gallery">
+                    <!-- Zdjęcie produktu -->
+                    <div class="product-image">
+                        <h:panelGroup rendered="#{not empty productController.selectedProduct.imageUrl}">
+                            <img src="#{productController.selectedProduct.imageUrl}"
+                                 alt="#{productController.selectedProduct.name}"
+                                 onerror="this.style.display='none'; this.parentNode.querySelector('.placeholder').style.display='block'"/>
+                            <div class="placeholder" style="display: none;">📦</div>
+                        </h:panelGroup>
+                        <h:panelGroup rendered="#{empty productController.selectedProduct.imageUrl}">
+                            <div class="placeholder">📦</div>
+                        </h:panelGroup>
+                        <div class="zoom-overlay">🔍 Kliknij aby powiększyć</div>
+                    </div>
+
+                    <!-- Informacje o produkcie -->
+                    <div class="product-info">
+                        <div class="product-category">#{productController.selectedProduct.category}</div>
+
+                        <h1 class="product-title">#{productController.selectedProduct.name}</h1>
+
+                        <div class="product-price">
+                            <h:outputText value="#{productController.selectedProduct.price}">
+                                <f:convertNumber pattern="#,##0.00 zł" />
+                            </h:outputText>
+                        </div>
+
+                        <!-- Status dostępności -->
+                        <div class="stock-status #{productController.getStockStatusClass(productController.selectedProduct)}">
+                            #{productController.getStockStatusText(productController.selectedProduct)}
+                        </div>
+
+                        <!-- Opis produktu -->
+                        <h:panelGroup rendered="#{not empty productController.selectedProduct.description}">
+                            <div class="product-description">
+                                #{productController.selectedProduct.description}
+                            </div>
+                        </h:panelGroup>
+
+                        <!-- Metadane produktu -->
+                        <div class="product-meta">
+                            <div class="meta-row">
+                                <span class="meta-label">📦 Dostępność:</span>
+                                <span class="meta-value">#{productController.selectedProduct.stockQuantity} szt.</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">🏷️ Kategoria:</span>
+                                <span class="meta-value">#{productController.selectedProduct.category}</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">🆔 ID produktu:</span>
+                                <span class="meta-value">##{productController.selectedProduct.id}</span>
+                            </div>
+                        </div>
+
+                        <!-- Funkcje produktu -->
+                        <div class="product-features">
+                            <h3 class="features-title">✨ Dlaczego warto kupić?</h3>
+                            <div class="features-list">
+                                <div class="feature-item">
+                                    <span class="feature-icon">🚚</span>
+                                    <span>Bezpłatna dostawa</span>
+                                </div>
+                                <div class="feature-item">
+                                    <span class="feature-icon">↩️</span>
+                                    <span>14 dni na zwrot</span>
+                                </div>
+                                <div class="feature-item">
+                                    <span class="feature-icon">🛡️</span>
+                                    <span>Gwarancja jakości</span>
+                                </div>
+                                <div class="feature-item">
+                                    <span class="feature-icon">💳</span>
+                                    <span>Płatność przy odbiorze</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sekcja zakupu -->
+                        <h:panelGroup rendered="#{productController.isProductAvailable(productController.selectedProduct)}">
+                            <div class="purchase-section">
+                                <h:form id="purchaseForm">
+                                    <div class="quantity-section">
+                                        <label for="quantity">Wybierz ilość:</label>
+                                        <div class="quantity-controls">
+                                            <div class="quantity-selector">
+                                                <button type="button" onclick="decreaseQuantity()" id="decreaseBtn">−</button>
+                                                <h:inputText id="quantity"
+                                                             value="#{productController.selectedQuantity}"
+                                                             onchange="validateQuantity()"
+                                                             style="text-align: center;"/>
+                                                <button type="button" onclick="increaseQuantity()" id="increaseBtn">+</button>
+                                            </div>
+                                            <div class="quantity-info">
+                                                Maksymalnie #{productController.getMaxQuantityForProduct(productController.selectedProduct)} szt.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="action-buttons">
+                                        <h:commandButton value="🛒 Dodaj do koszyka"
+                                                         action="#{productController.addToCart(productController.selectedProduct)}"
+                                                         styleClass="btn btn-success"
+                                                         onclick="return validatePurchase()"/>
+
+                                        <h:panelGroup rendered="#{userController.loggedIn}">
+                                            <button type="button" class="btn btn-primary"
+                                                    onclick="addToCartAndGoToCheckout()">
+                                                💳 Kup teraz
+                                            </button>
+                                        </h:panelGroup>
+                                    </div>
+                                </h:form>
+                            </div>
+                        </h:panelGroup>
+
+                        <!-- Produkt niedostępny -->
+                        <h:panelGroup rendered="#{not productController.isProductAvailable(productController.selectedProduct)}">
+                            <div class="purchase-section" style="text-align: center;">
+                                <h3 style="color: #721c24; margin-bottom: 1rem;">❌ Produkt obecnie niedostępny</h3>
+                                <p style="color: #666; margin-bottom: 2rem;">
+                                    Ten produkt jest chwilowo wyprzedany. Sprawdź inne produkty z tej kategorii.
+                                </p>
+                                <h:link outcome="/user/products" styleClass="btn btn-primary">
+                                    🔍 Zobacz inne produkty
+                                </h:link>
+                            </div>
+                        </h:panelGroup>
+                    </div>
+                </div>
+
+                <!-- Polecane produkty -->
+                <div class="related-products">
+                    <h2 class="related-title">🌟 Może Cię również zainteresować</h2>
+                    <div class="related-grid">
+                        <ui:repeat value="#{productController.recommendedProducts}" var="related">
+                            <div class="related-item">
+                                <h:panelGroup rendered="#{not empty related.imageUrl}">
+                                    <img src="#{related.imageUrl}" alt="#{related.name}"
+                                         onerror="this.style.display='none'; this.parentNode.querySelector('.placeholder').style.display='flex'"/>
+                                    <div class="placeholder" style="display: none;">📦</div>
+                                </h:panelGroup>
+                                <h:panelGroup rendered="#{empty related.imageUrl}">
+                                    <div class="placeholder">📦</div>
+                                </h:panelGroup>
+
+                                <h4 style="color: #333; margin-bottom: 0.5rem;">#{related.name}</h4>
+                                <div style="color: #28a745; font-weight: bold; margin-bottom: 1rem;">
+                                    <h:outputText value="#{related.price}">
+                                        <f:convertNumber pattern="#,##0.00 zł" />
+                                    </h:outputText>
+                                </div>
+
+                                <h:form style="margin: 0;">
+                                    <h:commandButton value="Zobacz szczegóły"
+                                                     action="#{productController.viewProductDetails(related.id)}"
+                                                     styleClass="btn btn-secondary"
+                                                     style="font-size: 0.9rem; padding: 0.5rem 1rem;"/>
+                                </h:form>
+                            </div>
+                        </ui:repeat>
+                    </div>
+                </div>
+            </div>
+        </h:panelGroup>
+    </div>
+
+    <script>
+        //<![CDATA[
+        let maxQuantity = #{productController.getMaxQuantityForProduct(productController.selectedProduct) != null ? productController.getMaxQuantityForProduct(productController.selectedProduct) : 0};
+
+        function decreaseQuantity() {
+            const input = document.getElementById('purchaseForm:quantity');
+            const current = parseInt(input.value) || 1;
+            if (current > 1) {
+                input.value = current - 1;
+                validateQuantity();
+            }
+        }
+
+        function increaseQuantity() {
+            const input = document.getElementById('purchaseForm:quantity');
+            const current = parseInt(input.value) || 1;
+            if (current < maxQuantity) {
+                input.value = current + 1;
+                validateQuantity();
+            }
+        }
+
+        function validateQuantity() {
+            const input = document.getElementById('purchaseForm:quantity');
+            const decreaseBtn = document.getElementById('decreaseBtn');
+            const increaseBtn = document.getElementById('increaseBtn');
+            const value = parseInt(input.value) || 1;
+
+            /* Sprawdź granice */
+            if (value <= 1) {
+                input.value = 1;
+                decreaseBtn.disabled = true;
+            } else {
+                decreaseBtn.disabled = false;
+            }
+
+            if (value >= maxQuantity) {
+                input.value = maxQuantity;
+                increaseBtn.disabled = true;
+            } else {
+                increaseBtn.disabled = false;
+            }
+        }
+
+        function validatePurchase() {
+            const quantity = parseInt(document.getElementById('purchaseForm:quantity').value) || 1;
+
+            if (quantity < 1) {
+                alert('Ilość musi być większa od 0');
+                return false;
+            }
+
+            if (quantity > maxQuantity) {
+                alert('Maksymalna dostępna ilość to ' + maxQuantity + ' sztuk');
+                return false;
+            }
+
+            return true;
+        }
+
+        function addToCartAndGoToCheckout() {
+            if (validatePurchase()) {
+                /* Symulacja dodania do koszyka i przejścia do checkout */
+                alert('Produkt zostanie dodany do koszyka i zostaniesz przekierowany do finalizacji zamówienia');
+                /* Tutaj można dodać rzeczywistą logikę */
+            }
+        }
+
+        /* Powiększanie zdjęcia */
+        document.addEventListener('DOMContentLoaded', function() {
+            const productImage = document.querySelector('.product-image img');
+            if (productImage) {
+                productImage.addEventListener('click', function() {
+                    /* Otwórz modal z powiększonym zdjęciem */
+                    const modal = document.createElement('div');
+                    modal.style.cssText = `
+                        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                        background: rgba(0,0,0,0.9); z-index: 1000; display: flex;
+                        align-items: center; justify-content: center; cursor: pointer;
+                    `;
+
+                    const img = document.createElement('img');
+                    img.src = this.src;
+                    img.style.cssText = 'max-width: 90%; max-height: 90%; object-fit: contain;';
+
+                    modal.appendChild(img);
+                    document.body.appendChild(modal);
+
+                    modal.addEventListener('click', function() {
+                        document.body.removeChild(modal);
+                    });
+                });
+            }
+        });
+
+        /* Inicjalizacja */
+        document.addEventListener('DOMContentLoaded', function() {
+            validateQuantity();
+        });
+        //]]>
+    </script>
+</h:body>
+</html>

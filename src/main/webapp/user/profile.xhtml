@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+<h:head>
+    <title>Mój profil - Sklep Online</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        .breadcrumb {
+            background: white;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .breadcrumb a {
+            color: #667eea;
+            text-decoration: none;
+            margin-right: 0.5rem;
+        }
+
+        .breadcrumb span {
+            color: #666;
+            margin-right: 0.5rem;
+        }
+
+        .profile-container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+        }
+
+        .profile-sidebar {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 2rem;
+            height: fit-content;
+        }
+
+        .profile-avatar {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .avatar-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: white;
+            margin: 0 auto 1rem;
+        }
+
+        .profile-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-email {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .profile-nav {
+            list-style: none;
+            margin-top: 2rem;
+        }
+
+        .profile-nav li {
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-nav a {
+            display: block;
+            padding: 0.75rem 1rem;
+            color: #666;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .profile-nav a:hover, .profile-nav a.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .profile-content {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .content-header {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .content-header h2 {
+            color: #333;
+            margin: 0;
+        }
+
+        .content-body {
+            padding: 2rem;
+        }
+
+        .form-section {
+            margin-bottom: 3rem;
+        }
+
+        .section-title {
+            color: #333;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 0.5rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group input[readonly] {
+            background: #f8f9fa;
+            color: #666;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .help-text {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .messages {
+            margin-bottom: 2rem;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .alert-info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid #e9ecef;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .recent-orders {
+            margin-top: 2rem;
+        }
+
+        .order-item {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .order-info h4 {
+            color: #333;
+            margin-bottom: 0.25rem;
+        }
+
+        .order-date {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .order-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-confirmed { background: #d4edda; color: #155724; }
+        .status-shipped { background: #d1ecf1; color: #0c5460; }
+        .status-delivered { background: #d1e7dd; color: #0f5132; }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .profile-container {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .security-section {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .security-section h4 {
+            color: #856404;
+            margin-bottom: 1rem;
+        }
+
+        .security-tips {
+            color: #856404;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .security-tips li {
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</h:head>
+<h:body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">🛍️ Sklep Online</div>
+            <div class="user-info">
+                <span>Witaj, #{userController.currentUser.fullName}!</span>
+                <h:link outcome="/user/products" styleClass="btn btn-secondary">🛒 Produkty</h:link>
+                <h:link outcome="/user/cart" styleClass="btn btn-warning">🛒 Koszyk</h:link>
+                <h:link outcome="/user/orders" styleClass="btn btn-secondary">📦 Zamówienia</h:link>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <h:link outcome="/user/products" value="🛒 Produkty" />
+            <span>›</span>
+            <span>Mój profil</span>
+        </div>
+
+        <!-- Komunikaty -->
+        <div class="messages">
+            <h:messages globalOnly="true"
+                        infoClass="alert alert-success"
+                        errorClass="alert alert-danger"
+                        warnClass="alert alert-info"
+                        rendered="#{not empty facesContext.messageList}"/>
+        </div>
+
+        <div class="profile-container">
+            <!-- Sidebar -->
+            <div class="profile-sidebar">
+                <div class="profile-avatar">
+                    <div class="avatar-circle">
+                        #{userController.currentUser.firstName.substring(0,1).toUpperCase()}#{userController.currentUser.lastName.substring(0,1).toUpperCase()}
+                    </div>
+                    <div class="profile-name">#{userController.currentUser.fullName}</div>
+                    <div class="profile-email">#{userController.currentUser.email}</div>
+                </div>
+
+                <ul class="profile-nav">
+                    <li><a href="#personal-info" class="active">👤 Dane osobowe</a></li>
+                    <li><a href="#address-info">📍 Adres</a></li>
+                    <li><a href="#contact-info">📞 Kontakt</a></li>
+                    <li><a href="#account-stats">📊 Statystyki</a></li>
+                    <li><a href="#security">🔒 Bezpieczeństwo</a></li>
+                </ul>
+            </div>
+
+            <!-- Główna zawartość -->
+            <div class="profile-content">
+                <div class="content-header">
+                    <h2>👤 Mój profil</h2>
+                </div>
+
+                <div class="content-body">
+                    <h:form id="profileForm">
+                        <!-- Dane osobowe -->
+                        <div class="form-section" id="personal-info">
+                            <h3 class="section-title">Dane osobowe</h3>
+
+                            <div class="form-group">
+                                <label for="username">Nazwa użytkownika:</label>
+                                <h:inputText id="username" value="#{userController.currentUser.username}"
+                                             readonly="true"/>
+                                <div class="help-text">Nazwa użytkownika nie może być zmieniona</div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="firstName">Imię:</label>
+                                    <h:inputText id="firstName" value="#{userController.currentUser.firstName}"
+                                                 placeholder="Wprowadź swoje imię"/>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="lastName">Nazwisko:</label>
+                                    <h:inputText id="lastName" value="#{userController.currentUser.lastName}"
+                                                 placeholder="Wprowadź swoje nazwisko"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dane kontaktowe -->
+                        <div class="form-section" id="contact-info">
+                            <h3 class="section-title">Dane kontaktowe</h3>
+
+                            <div class="form-group">
+                                <label for="email">Adres email:</label>
+                                <h:inputText id="email" value="#{userController.currentUser.email}"
+                                             placeholder="twoj@email.com"/>
+                                <div class="help-text">Email służy do powiadomień o zamówieniach</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="phone">Telefon:</label>
+                                <h:inputText id="phone" value="#{userController.currentUser.phone}"
+                                             placeholder="+48 123 456 789"/>
+                                <div class="help-text">Numer telefonu do kontaktu w sprawie dostawy</div>
+                            </div>
+                        </div>
+
+                        <!-- Adres -->
+                        <div class="form-section" id="address-info">
+                            <h3 class="section-title">Adres dostawy</h3>
+
+                            <div class="form-group">
+                                <label for="address">Pełny adres:</label>
+                                <h:inputTextarea id="address" value="#{userController.currentUser.address}"
+                                                 placeholder="ul. Nazwa ulicy 12/34&#10;00-001 Miasto"
+                                                 rows="4"/>
+                                <div class="help-text">Podaj pełny adres z kodem pocztowym i miastem</div>
+                            </div>
+                        </div>
+
+                        <!-- Przyciski akcji -->
+                        <div class="action-buttons">
+                            <h:commandButton value="💾 Zapisz zmiany"
+                                             action="#{userController.updateProfile}"
+                                             styleClass="btn btn-success"
+                                             onclick="return confirm('Czy na pewno chcesz zapisać zmiany?')"/>
+
+                            <button type="button" class="btn btn-secondary" onclick="resetForm()">
+                                🔄 Cofnij zmiany
+                            </button>
+                        </div>
+                    </h:form>
+
+                    <!-- Statystyki konta -->
+                    <div class="form-section" id="account-stats">
+                        <h3 class="section-title">📊 Statystyki konta</h3>
+
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value">#{orderController.userOrders.size()}</div>
+                                <div class="stat-label">Zamówienia</div>
+                            </div>
+
+                            <div class="stat-card">
+                                <div class="stat-value">#{cartController.cartItemCount}</div>
+                                <div class="stat-label">Produkty w koszyku</div>
+                            </div>
+
+                            <div class="stat-card">
+                                <div class="stat-value">
+                                    <h:outputText value="#{cartController.cartTotal}">
+                                        <f:convertNumber pattern="#,##0" />
+                                    </h:outputText> zł
+                                </div>
+                                <div class="stat-label">Wartość koszyka</div>
+                            </div>
+
+                            <div class="stat-card">
+                                <div class="stat-value">Premium</div>
+                                <div class="stat-label">Status konta</div>
+                            </div>
+                        </div>
+
+                        <!-- Ostatnie zamówienia -->
+                        <div class="recent-orders">
+                            <h4 style="color: #333; margin-bottom: 1rem;">📦 Ostatnie zamówienia</h4>
+
+                            <h:panelGroup rendered="#{not empty orderController.userOrders}">
+                                <ui:repeat value="#{orderController.userOrders}" var="order" begin="0" end="2">
+                                    <div class="order-item">
+                                        <div class="order-info">
+                                            <h4>Zamówienie ##{order.id}</h4>
+                                            <div class="order-date">
+                                                <h:outputText value="#{order.orderDate}">
+                                                    <f:convertDateTime pattern="dd.MM.yyyy" />
+                                                </h:outputText>
+                                                -
+                                                <h:outputText value="#{order.totalAmount}">
+                                                    <f:convertNumber pattern="#,##0.00 zł" />
+                                                </h:outputText>
+                                            </div>
+                                        </div>
+                                        <div class="order-status status-#{order.status.name().toLowerCase()}">
+                                            #{order.status.displayName}
+                                        </div>
+                                    </div>
+                                </ui:repeat>
+
+                                <div style="text-align: center; margin-top: 1rem;">
+                                    <h:link outcome="/user/orders" styleClass="btn btn-primary">
+                                        Zobacz wszystkie zamówienia
+                                    </h:link>
+                                </div>
+                            </h:panelGroup>
+
+                            <h:panelGroup rendered="#{empty orderController.userOrders}">
+                                <div style="text-align: center; padding: 2rem; color: #666;">
+                                    <p>Nie masz jeszcze żadnych zamówień.</p>
+                                    <h:link outcome="/user/products" styleClass="btn btn-primary" style="margin-top: 1rem;">
+                                        Zacznij zakupy
+                                    </h:link>
+                                </div>
+                            </h:panelGroup>
+                        </div>
+                    </div>
+
+                    <!-- Bezpieczeństwo -->
+                    <div class="form-section" id="security">
+                        <h3 class="section-title">🔒 Bezpieczeństwo konta</h3>
+
+                        <div class="security-section">
+                            <h4>💡 Wskazówki bezpieczeństwa</h4>
+                            <ul class="security-tips">
+                                <li>Używaj silnego hasła zawierającego litery, cyfry i znaki specjalne</li>
+                                <li>Nie udostępniaj swoich danych logowania innym osobom</li>
+                                <li>Regularnie sprawdzaj historię swoich zamówień</li>
+                                <li>Wylogowuj się z konta na urządzeniach publicznych</li>
+                            </ul>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                            <button type="button" class="btn btn-warning"
+                                    onclick="alert('Funkcja zmiany hasła będzie dostępna wkrótce')">
+                                🔑 Zmień hasło
+                            </button>
+
+                            <button type="button" class="btn btn-danger"
+                                    onclick="if(confirm('Czy na pewno chcesz usunąć konto? Ta operacja jest nieodwracalna!')) alert('Funkcja usuwania konta będzie dostępna wkrótce')">
+                                🗑️ Usuń konto
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        //<![CDATA[
+        /* Nawigacja w profilu */
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('.profile-nav a');
+            const sections = document.querySelectorAll('.form-section');
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    /* Usuń aktywne klasy */
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    sections.forEach(s => s.style.display = 'none');
+
+                    /* Dodaj aktywną klasę */
+                    this.classList.add('active');
+
+                    /* Pokaż odpowiednią sekcję */
+                    const targetId = this.getAttribute('href').substring(1);
+                    const targetSection = document.getElementById(targetId);
+                    if (targetSection) {
+                        targetSection.style.display = 'block';
+                    }
+                });
+            });
+
+            /* Pokaż pierwszą sekcję */
+            if (sections.length > 0) {
+                sections.forEach(s => s.style.display = 'none');
+                sections[0].style.display = 'block';
+            }
+        });
+
+        /* Reset formularza */
+        function resetForm() {
+            if (confirm('Czy na pewno chcesz cofnąć wszystkie niezapisane zmiany?')) {
+                window.location.reload();
+            }
+        }
+
+        /* Walidacja formularza */
+        function validateProfile() {
+            const email = document.getElementById('profileForm:email').value;
+            const firstName = document.getElementById('profileForm:firstName').value;
+            const lastName = document.getElementById('profileForm:lastName').value;
+
+            if (firstName.trim().length < 2) {
+                alert('Imię musi mieć co najmniej 2 znaki');
+                return false;
+            }
+
+            if (lastName.trim().length < 2) {
+                alert('Nazwisko musi mieć co najmniej 2 znaki');
+                return false;
+            }
+
+            if (email && !email.includes('@')) {
+                alert('Wprowadź poprawny adres email');
+                return false;
+            }
+
+            return true;
+        }
+
+        /* Dodaj walidację do przycisku zapisu */
+        document.addEventListener('DOMContentLoaded', function() {
+            const saveBtn = document.querySelector('input[value*="Zapisz zmiany"]');
+            if (saveBtn) {
+                saveBtn.addEventListener('click', function(e) {
+                    if (!validateProfile()) {
+                        e.preventDefault();
+                    }
+                });
+            }
+        });
+
+        /* Auto-zapisywanie w localStorage */
+        function autoSave() {
+            const formData = {
+                firstName: document.getElementById('profileForm:firstName').value,
+                lastName: document.getElementById('profileForm:lastName').value,
+                email: document.getElementById('profileForm:email').value,
+                phone: document.getElementById('profileForm:phone').value,
+                address: document.getElementById('profileForm:address').value
+            };
+
+            try {
+                localStorage.setItem('profileBackup', JSON.stringify(formData));
+            } catch (e) {
+                console.log('Cannot save to localStorage');
+            }
+        }
+
+        /* Auto-save co 30 sekund */
+        setInterval(autoSave, 30000);
+
+        /* Zapisz przy każdej zmianie */
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = document.querySelectorAll('#profileForm input, #profileForm textarea');
+            inputs.forEach(input => {
+                input.addEventListener('change', autoSave);
+            });
+        });
+        //]]>
+    </script>
+</h:body>
+</html>

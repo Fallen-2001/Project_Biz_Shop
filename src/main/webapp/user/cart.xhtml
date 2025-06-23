@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+<h:head>
+    <title>Koszyk - Sklep Online</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        .page-header {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .page-header h1 {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-header p {
+            color: #666;
+        }
+
+        .cart-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        .cart-items {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .cart-header {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .cart-header h3 {
+            color: #333;
+            margin: 0;
+        }
+
+        .cart-item {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+            display: grid;
+            grid-template-columns: 80px 1fr auto auto auto;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-image {
+            width: 80px;
+            height: 80px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: #666;
+        }
+
+        .item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .item-details h4 {
+            color: #333;
+            margin-bottom: 0.25rem;
+        }
+
+        .item-category {
+            color: #667eea;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .item-availability {
+            font-size: 0.9rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 15px;
+            display: inline-block;
+        }
+
+        .available { background: #d4edda; color: #155724; }
+        .limited { background: #fff3cd; color: #856404; }
+        .unavailable { background: #f8d7da; color: #721c24; }
+
+        .item-price {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #28a745;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .quantity-controls button {
+            background: #f8f9fa;
+            border: none;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .quantity-controls button:hover {
+            background: #e9ecef;
+        }
+
+        .quantity-controls input {
+            border: none;
+            width: 50px;
+            text-align: center;
+            height: 32px;
+            background: white;
+        }
+
+        .item-total {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+            text-align: right;
+        }
+
+        .item-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .cart-summary {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 2rem;
+            height: fit-content;
+            position: sticky;
+            top: 2rem;
+        }
+
+        .summary-header {
+            color: #333;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 0.5rem;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding: 0.5rem 0;
+        }
+
+        .summary-row.total {
+            border-top: 2px solid #e9ecef;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+            margin-top: 1rem;
+            padding-top: 1rem;
+        }
+
+        .checkout-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .empty-cart {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+
+        .empty-cart h3 {
+            color: #666;
+            margin-bottom: 1rem;
+        }
+
+        .empty-cart p {
+            color: #999;
+            margin-bottom: 2rem;
+        }
+
+        .messages {
+            margin-bottom: 2rem;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .alert-warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+
+        .breadcrumb {
+            background: white;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .breadcrumb a {
+            color: #667eea;
+            text-decoration: none;
+            margin-right: 0.5rem;
+        }
+
+        .breadcrumb span {
+            color: #666;
+            margin-right: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .cart-container {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .cart-item {
+                grid-template-columns: 60px 1fr;
+                gap: 1rem;
+            }
+
+            .item-price,
+            .quantity-controls,
+            .item-total,
+            .item-actions {
+                grid-column: 1 / -1;
+                margin-top: 1rem;
+            }
+
+            .cart-summary {
+                position: static;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+
+        .sync-warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+    </style>
+</h:head>
+<h:body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">🛍️ Sklep Online</div>
+            <div class="user-info">
+                <h:panelGroup rendered="#{userController.loggedIn}">
+                    <span>Witaj, #{userController.currentUser.fullName}!</span>
+                    <h:link outcome="/user/products" styleClass="btn btn-secondary">🛒 Kontynuuj zakupy</h:link>
+                    <h:link outcome="/user/orders" styleClass="btn btn-secondary">📦 Zamówienia</h:link>
+                </h:panelGroup>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <h:link outcome="/user/products" value="🛒 Produkty" />
+            <span>›</span>
+            <span>Koszyk</span>
+        </div>
+
+        <!-- Header strony -->
+        <div class="page-header">
+            <h1>🛒 Twój koszyk</h1>
+            <p>Sprawdź wybrane produkty i przejdź do finalizacji zamówienia</p>
+        </div>
+
+        <!-- Komunikaty -->
+        <div class="messages">
+            <h:messages globalOnly="true"
+                        infoClass="alert alert-success"
+                        errorClass="alert alert-danger"
+                        warnClass="alert alert-warning"
+                        rendered="#{not empty facesContext.messageList}"/>
+        </div>
+
+        <!-- Ostrzeżenie o synchronizacji -->
+        <h:panelGroup rendered="#{not cartController.canPlaceOrder and not cartController.cartEmpty}">
+            <div class="sync-warning">
+                <div>
+                    ⚠️ Niektóre produkty w koszyku mogą być niedostępne.
+                    Zsynchronizuj koszyk aby sprawdzić aktualną dostępność.
+                </div>
+                <h:form style="margin: 0;">
+                    <h:commandButton value="🔄 Synchronizuj"
+                                     action="#{cartController.synchronizeCart}"
+                                     styleClass="btn btn-warning" />
+                </h:form>
+            </div>
+        </h:panelGroup>
+
+        <!-- Koszyk -->
+        <h:panelGroup rendered="#{not cartController.cartEmpty}">
+            <div class="cart-container">
+                <!-- Lista produktów -->
+                <div class="cart-items">
+                    <div class="cart-header">
+                        <h3>Produkty w koszyku (#{cartController.cartItemsCount})</h3>
+                    </div>
+
+                    <h:form id="cartForm">
+                        <ui:repeat value="#{cartController.cartItems}" var="item">
+                            <div class="cart-item">
+                                <!-- Obrazek -->
+                                <div class="item-image">
+                                    <h:panelGroup rendered="#{not empty item.product.imageUrl}">
+                                        <img src="#{item.product.imageUrl}" alt="#{item.product.name}"
+                                             onerror="this.style.display='none'; this.parentNode.innerHTML='📦'"/>
+                                    </h:panelGroup>
+                                    <h:panelGroup rendered="#{empty item.product.imageUrl}">
+                                        📦
+                                    </h:panelGroup>
+                                </div>
+
+                                <!-- Szczegóły produktu -->
+                                <div class="item-details">
+                                    <h4>#{item.product.name}</h4>
+                                    <div class="item-category">#{item.product.category}</div>
+
+                                    <!-- Status dostępności -->
+                                    <div class="item-availability #{cartController.getStockStatusClass(item)}">
+                                        #{cartController.getStockStatus(item)}
+                                    </div>
+                                </div>
+
+                                <!-- Cena jednostkowa -->
+                                <div class="item-price">
+                                    <h:outputText value="#{item.product.price}">
+                                        <f:convertNumber pattern="#,##0.00 zł" />
+                                    </h:outputText>
+                                </div>
+
+                                <!-- Kontrola ilości -->
+                                <div class="quantity-controls">
+                                    <h:commandButton value="−"
+                                                     action="#{cartController.updateQuantity(item.id, item.quantity - 1)}"
+                                                     disabled="#{item.quantity <= 1}"
+                                                     onclick="return confirm('Czy zmniejszyć ilość?')"/>
+
+                                    <input type="number" value="#{item.quantity}" min="1"
+                                           max="#{cartController.getMaxQuantityForItem(item)}"
+                                           onchange="updateQuantity(#{item.id}, this.value)" readonly="readonly"/>
+
+                                    <h:commandButton value="+"
+                                                     action="#{cartController.updateQuantity(item.id, item.quantity + 1)}"
+                                                     disabled="#{item.quantity >= cartController.getMaxQuantityForItem(item)}"
+                                                     onclick="return confirm('Czy zwiększyć ilość?')"/>
+                                </div>
+
+                                <!-- Suma za pozycję -->
+                                <div class="item-total">
+                                    <h:outputText value="#{item.subtotal}">
+                                        <f:convertNumber pattern="#,##0.00 zł" />
+                                    </h:outputText>
+                                </div>
+
+                                <!-- Akcje -->
+                                <div class="item-actions">
+                                    <h:commandButton value="🗑️ Usuń"
+                                                     action="#{cartController.removeFromCart(item.id)}"
+                                                     styleClass="btn btn-danger"
+                                                     onclick="return confirm('Czy na pewno usunąć ten produkt z koszyka?')"/>
+                                </div>
+                            </div>
+                        </ui:repeat>
+
+                        <!-- Akcje dla całego koszyka -->
+                        <div style="padding: 1.5rem; background: #f8f9fa; border-top: 1px solid #e9ecef;">
+                            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                                <h:commandButton value="🔄 Odśwież koszyk"
+                                                 action="#{cartController.loadCart}"
+                                                 styleClass="btn btn-secondary" />
+
+                                <h:commandButton value="🗑️ Wyczyść koszyk"
+                                                 action="#{cartController.clearCart}"
+                                                 styleClass="btn btn-danger"
+                                                 onclick="return confirm('Czy na pewno wyczyścić cały koszyk?')" />
+                            </div>
+                        </div>
+                    </h:form>
+                </div>
+
+                <!-- Podsumowanie -->
+                <div class="cart-summary">
+                    <h3 class="summary-header">📊 Podsumowanie zamówienia</h3>
+
+                    <div class="summary-row">
+                        <span>Liczba produktów:</span>
+                        <span>#{cartController.cartItemsCount}</span>
+                    </div>
+
+                    <div class="summary-row">
+                        <span>Łączna ilość:</span>
+                        <span>#{cartController.cartItemCount} szt.</span>
+                    </div>
+
+                    <div class="summary-row">
+                        <span>Wartość produktów:</span>
+                        <span>
+                            <h:outputText value="#{cartController.cartTotal}">
+                                <f:convertNumber pattern="#,##0.00 zł" />
+                            </h:outputText>
+                        </span>
+                    </div>
+
+                    <div class="summary-row">
+                        <span>Dostawa:</span>
+                        <span style="color: #28a745;">Bezpłatna</span>
+                    </div>
+
+                    <div class="summary-row total">
+                        <span>Do zapłaty:</span>
+                        <span>
+                            <h:outputText value="#{cartController.cartTotal}">
+                                <f:convertNumber pattern="#,##0.00 zł" />
+                            </h:outputText>
+                        </span>
+                    </div>
+
+                    <div class="checkout-actions">
+                        <h:panelGroup rendered="#{cartController.canPlaceOrder}">
+                            <h:link outcome="/user/checkout" styleClass="btn btn-success"
+                                    style="text-align: center; font-size: 1.1rem; padding: 1rem;">
+                                💳 Przejdź do płatności
+                            </h:link>
+                        </h:panelGroup>
+
+                        <h:panelGroup rendered="#{not cartController.canPlaceOrder}">
+                            <button class="btn btn-secondary" disabled="disabled"
+                                    style="text-align: center; font-size: 1.1rem; padding: 1rem;">
+                                ⚠️ Sprawdź dostępność
+                            </button>
+                            <p style="color: #856404; font-size: 0.9rem; text-align: center; margin: 0.5rem 0;">
+                                Niektóre produkty są niedostępne
+                            </p>
+                        </h:panelGroup>
+
+                        <h:link outcome="/user/products" styleClass="btn btn-primary">
+                            🛒 Kontynuuj zakupy
+                        </h:link>
+                    </div>
+
+                    <!-- Informacje dodatkowe -->
+                    <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e9ecef;">
+                        <h4 style="color: #333; margin-bottom: 1rem;">ℹ️ Informacje</h4>
+                        <ul style="color: #666; font-size: 0.9rem; line-height: 1.6;">
+                            <li>🚚 Bezpłatna dostawa przy zamówieniach powyżej 0 zł</li>
+                            <li>📦 Realizacja zamówienia: 1-3 dni robocze</li>
+                            <li>↩️ Zwrot produktu: do 14 dni</li>
+                            <li>💳 Płatność przy odbiorze lub online</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </h:panelGroup>
+
+        <!-- Pusty koszyk -->
+        <h:panelGroup rendered="#{cartController.cartEmpty}">
+            <div class="empty-cart">
+                <h3>🛒 Twój koszyk jest pusty</h3>
+                <p>Dodaj produkty do koszyka, aby móc złożyć zamówienie.</p>
+                <h:link outcome="/user/products" styleClass="btn btn-primary"
+                        style="font-size: 1.1rem; padding: 1rem 2rem;">
+                    🛒 Zacznij zakupy
+                </h:link>
+            </div>
+        </h:panelGroup>
+    </div>
+
+    <script>
+        //<![CDATA[
+        function updateQuantity(itemId, newQuantity) {
+            if (newQuantity < 1) return;
+
+            /* Tutaj można dodać AJAX call do aktualizacji */
+            console.log('Updating quantity for item', itemId, 'to', newQuantity);
+
+            /* Na razie przeładowujemy stronę */
+            setTimeout(function() {
+                window.location.reload();
+            }, 100);
+        }
+
+        /* Potwierdzenie przed opuszczeniem strony z pełnym koszykiem */
+        window.addEventListener('beforeunload', function(e) {
+            const cartItems = document.querySelectorAll('.cart-item');
+            if (cartItems.length > 0) {
+                e.returnValue = 'Masz produkty w koszyku. Czy na pewno chcesz opuścić stronę?';
+            }
+        });
+
+        /* Auto-save co 30 sekund */
+        setInterval(function() {
+            if (document.hidden) return;
+            console.log('Auto-save cart state...');
+        }, 30000);
+        //]]>
+    </script>
+</h:body>
+</html>

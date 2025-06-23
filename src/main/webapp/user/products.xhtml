@@ -1,102 +1,604 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="http://xmlns.jcp.org/jsf/html"
-      xmlns:f="http://xmlns.jcp.org/jsf/core">
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
 <h:head>
-    <title>Produkty - Sklep</title>
+    <title>Sklep Online - Produkty</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .header { background: #f0f0f0; padding: 10px; margin-bottom: 20px; }
-        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-        .product-card { border: 1px solid #ddd; padding: 15px; border-radius: 5px; background: white; }
-        .product-card h3 { margin-top: 0; color: #333; }
-        .product-price { font-size: 1.2em; font-weight: bold; color: #007bff; }
-        .btn { padding: 8px 15px; margin: 5px 0; cursor: pointer; border: none; border-radius: 3px; }
-        .btn-success { background: #28a745; color: white; }
-        .btn-info { background: #17a2b8; color: white; }
-        .product-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        .product-table th, .product-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        .product-table th { background: #f2f2f2; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .cart-badge {
+            background: #ff4757;
+            color: white;
+            border-radius: 50%;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+            font-weight: bold;
+            min-width: 1.5rem;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        .search-filters {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .search-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr auto;
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-group input, .form-group select {
+            padding: 0.75rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: all 0.3s;
+            border: 1px solid #e1e5e9;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .product-image {
+            height: 200px;
+            background: linear-gradient(135deg, #f1f3f4 0%, #e8eaf0 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 3rem;
+            position: relative;
+        }
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .stock-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 0.25rem 0.5rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .stock-high { background: #d4edda; color: #155724; }
+        .stock-medium { background: #fff3cd; color: #856404; }
+        .stock-low { background: #f8d7da; color: #721c24; }
+        .stock-out { background: #f1f3f4; color: #5f6368; }
+
+        .product-info {
+            padding: 1.5rem;
+        }
+
+        .product-category {
+            font-size: 0.8rem;
+            color: #667eea;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 0.75rem;
+            line-height: 1.4;
+        }
+
+        .product-description {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .product-price {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #28a745;
+            margin-bottom: 1rem;
+        }
+
+        .product-stock {
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .product-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .quantity-selector {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .quantity-selector button {
+            background: #e9ecef;
+            border: 1px solid #ced4da;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .quantity-selector input {
+            width: 60px;
+            text-align: center;
+            border: 1px solid #ced4da;
+            border-left: none;
+            border-right: none;
+            height: 30px;
+        }
+
+        .messages {
+            margin-bottom: 2rem;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .alert-info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .navigation {
+            background: white;
+            padding: 1rem 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            margin-top: 3rem;
+        }
+
+        .nav-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        .nav-content a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .nav-content a:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .empty-state h3 {
+            color: #666;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state p {
+            color: #999;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .search-row {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .products-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 1rem;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .user-info {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
     </style>
 </h:head>
 <h:body>
+    <!-- Header -->
     <div class="header">
-        <h1>Sklep - Dostępne Produkty</h1>
-        <p>Witamy w naszym sklepie! Przeglądaj i kupuj nasze produkty.</p>
+        <div class="header-content">
+            <div class="logo">🛍️ Sklep Online</div>
+            <div class="user-info">
+                <h:panelGroup rendered="#{userController.loggedIn}">
+                    <span>Witaj, #{userController.currentUser.fullName}!</span>
+                    <h:link outcome="/user/cart" styleClass="btn btn-warning">
+                        🛒 Koszyk
+                        <h:panelGroup rendered="#{cartController.cartItemCount > 0}">
+                            <span class="cart-badge">#{cartController.cartItemCount}</span>
+                        </h:panelGroup>
+                    </h:link>
+                    <h:link outcome="/user/orders" styleClass="btn btn-secondary">📦 Zamówienia</h:link>
+                    <h:link outcome="/login" styleClass="btn btn-secondary">🚪 Wyloguj</h:link>
+                </h:panelGroup>
+
+                <h:panelGroup rendered="#{not userController.loggedIn}">
+                    <h:link outcome="/login" styleClass="btn btn-primary">🔑 Zaloguj</h:link>
+                    <h:link outcome="/register" styleClass="btn btn-secondary">📝 Rejestracja</h:link>
+                </h:panelGroup>
+            </div>
+        </div>
     </div>
 
-    <!-- Widok w formie kart (nowoczesny) -->
-    <h:panelGroup rendered="#{not empty productController.products}">
-        <div class="product-grid">
-            <ui:repeat value="#{productController.products}" var="product"
-                       xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
-                <div class="product-card">
-                    <h3>#{product.name}</h3>
-                    <div class="product-price">
-                        <h:outputText value="#{product.price}">
-                            <f:convertNumber pattern="#0.00 zł" />
-                        </h:outputText>
+    <div class="container">
+        <!-- Komunikaty -->
+        <div class="messages">
+            <h:messages globalOnly="true"
+                        infoClass="alert alert-success"
+                        errorClass="alert alert-danger"
+                        warnClass="alert alert-info"
+                        rendered="#{not empty facesContext.messageList}"/>
+        </div>
+
+        <!-- Filtry i wyszukiwanie -->
+        <div class="search-filters">
+            <h3 style="margin-bottom: 1.5rem; color: #333;">🔍 Znajdź produkty</h3>
+            <h:form id="searchForm">
+                <div class="search-row">
+                    <div class="form-group">
+                        <label for="searchTerm">Wyszukaj produkty:</label>
+                        <h:inputText id="searchTerm" value="#{productController.searchTerm}"
+                                     placeholder="Wpisz nazwę produktu..."/>
                     </div>
-                    <h:form>
-                        <h:commandButton value="Dodaj do koszyka"
-                                         action="#{productController.addToCart(product)}"
-                                         styleClass="btn btn-success" />
-                    </h:form>
+
+                    <div class="form-group">
+                        <label for="category">Kategoria:</label>
+                        <h:selectOneMenu id="category" value="#{productController.selectedCategory}">
+                            <f:selectItem itemLabel="Wszystkie kategorie" itemValue="" />
+                            <f:selectItem itemLabel="Elektronika" itemValue="Elektronika" />
+                            <f:selectItem itemLabel="Odzież" itemValue="Odzież" />
+                            <f:selectItem itemLabel="Dom i ogród" itemValue="Dom i ogród" />
+                            <f:selectItem itemLabel="Sport" itemValue="Sport" />
+                            <f:selectItem itemLabel="Książki" itemValue="Książki" />
+                            <f:selectItem itemLabel="Zabawki" itemValue="Zabawki" />
+                            <f:selectItem itemLabel="Różne" itemValue="Różne" />
+                        </h:selectOneMenu>
+                    </div>
+
+                    <div style="display: flex; gap: 0.5rem;">
+                        <h:commandButton value="🔍 Szukaj"
+                                         action="#{productController.search}"
+                                         styleClass="btn btn-primary" />
+                        <h:commandButton value="🗑️ Wyczyść"
+                                         action="#{productController.clearFilters}"
+                                         styleClass="btn btn-secondary" />
+                    </div>
                 </div>
-            </ui:repeat>
+            </h:form>
         </div>
-    </h:panelGroup>
 
-    <!-- Tabela produktów (klasyczny widok) -->
-    <h:panelGroup rendered="#{not empty productController.products}">
-        <h3>Lista produktów</h3>
-        <h:form>
-            <h:dataTable value="#{productController.products}" var="product"
-                         styleClass="product-table">
-                <h:column>
-                    <f:facet name="header">Nazwa</f:facet>
-                    #{product.name}
-                </h:column>
-                <h:column>
-                    <f:facet name="header">Cena</f:facet>
-                    <h:outputText value="#{product.price}">
-                        <f:convertNumber pattern="#0.00 zł" />
-                    </h:outputText>
-                </h:column>
-                <h:column>
-                    <f:facet name="header">Akcje</f:facet>
-                    <h:commandButton value="Dodaj do koszyka"
-                                     action="#{productController.addToCart(product)}"
-                                     styleClass="btn btn-success" />
-                </h:column>
-            </h:dataTable>
-        </h:form>
-    </h:panelGroup>
+        <!-- Produkty -->
+        <h:panelGroup rendered="#{not empty productController.products}">
+            <div class="products-grid">
+                <ui:repeat value="#{productController.products}" var="product">
+                    <div class="product-card">
+                        <!-- Obrazek produktu -->
+                        <div class="product-image">
+                            <h:panelGroup rendered="#{not empty product.imageUrl}">
+                                <img src="#{product.imageUrl}" alt="#{product.name}"
+                                     onerror="this.style.display='none'; this.parentNode.innerHTML='📦'"/>
+                            </h:panelGroup>
+                            <h:panelGroup rendered="#{empty product.imageUrl}">
+                                📦
+                            </h:panelGroup>
 
-    <!-- Komunikat gdy brak produktów -->
-    <h:panelGroup rendered="#{empty productController.products}">
-        <div style="text-align: center; padding: 50px;">
-            <h3>Brak dostępnych produktów</h3>
-            <p>Przepraszamy, aktualnie nie mamy produktów w ofercie.</p>
-        </div>
-    </h:panelGroup>
+                            <!-- Badge dostępności -->
+                            <div class="stock-badge #{product.stockQuantity gt 10 ? 'stock-high' : (product.stockQuantity gt 5 ? 'stock-medium' : (product.stockQuantity gt 0 ? 'stock-low' : 'stock-out'))}">
+                                <h:outputText value="✅ Dostępny" rendered="#{product.stockQuantity gt 5}" />
+                                <h:outputText value="⚠️ Ostatnie" rendered="#{product.stockQuantity gt 0 and product.stockQuantity le 5}" />
+                                <h:outputText value="❌ Wyprzedany" rendered="#{product.stockQuantity eq 0}" />
+                            </div>
+                        </div>
 
-    <!-- Informacja o wybranym produkcie -->
-    <h:panelGroup rendered="#{not empty productController.selectedProduct}">
-        <div style="margin-top: 20px; padding: 15px; background: #d4edda; border-radius: 5px;">
-            <h4>Dodano do koszyka:</h4>
-            <p><strong>#{productController.selectedProduct.name}</strong> -
-                <h:outputText value="#{productController.selectedProduct.price}">
-                    <f:convertNumber pattern="#0.00 zł" />
-                </h:outputText>
-            </p>
-        </div>
-    </h:panelGroup>
+                        <div class="product-info">
+                            <!-- Kategoria -->
+                            <div class="product-category">#{product.category}</div>
 
-    <!-- Linki nawigacyjne -->
-    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
-        <h:link value="Powrót do logowania" outcome="/login" styleClass="btn btn-info" />
+                            <!-- Nazwa -->
+                            <h3 class="product-name">#{product.name}</h3>
+
+                            <!-- Opis -->
+                            <h:panelGroup rendered="#{not empty product.description}">
+                                <p class="product-description">#{product.description}</p>
+                            </h:panelGroup>
+
+                            <!-- Cena -->
+                            <div class="product-price">
+                                <h:outputText value="#{product.price}">
+                                    <f:convertNumber pattern="#,##0.00 zł" />
+                                </h:outputText>
+                            </div>
+
+                            <!-- Stan magazynu -->
+                            <div class="product-stock #{product.stockQuantity gt 10 ? 'stock-high' : (product.stockQuantity gt 5 ? 'stock-medium' : (product.stockQuantity gt 0 ? 'stock-low' : 'stock-out'))}">
+                                <h:outputText value="W magazynie: #{product.stockQuantity} szt." rendered="#{product.stockQuantity gt 0}" />
+                                <h:outputText value="Produkt chwilowo niedostępny" rendered="#{product.stockQuantity eq 0}" />
+                            </div>
+
+                            <!-- Akcje -->
+                            <h:form rendered="#{product.stockQuantity gt 0}">
+                                <!-- Selektor ilości -->
+                                <div class="quantity-selector">
+                                    <label for="quantity_#{product.id}" style="margin-right: 0.5rem; font-weight: 500;">Ilość:</label>
+                                    <button type="button" onclick="decreaseQuantity('#{product.id}')"
+                                            style="border-radius: 5px 0 0 5px;">−</button>
+                                    <input type="number" id="quantity_#{product.id}" value="1" min="1"
+                                           max="#{product.stockQuantity gt 10 ? 10 : product.stockQuantity}"/>
+                                    <button type="button" onclick="increaseQuantity('#{product.id}')"
+                                            style="border-radius: 0 5px 5px 0;">+</button>
+                                </div>
+
+                                <div class="product-actions">
+                                    <h:commandButton value="🛒 Do koszyka"
+                                                     action="#{cartController.addToCart(product.id, 1)}"
+                                                     styleClass="btn btn-success"
+                                                     style="flex: 1;"
+                                                     onclick="this.form.elements['quantity_#{product.id}'].value"/>
+                                </div>
+                            </h:form>
+
+                            <h:panelGroup rendered="#{product.stockQuantity eq 0}">
+                                <div class="product-actions">
+                                    <button class="btn btn-secondary" disabled="disabled" style="flex: 1;">
+                                        ❌ Niedostępny
+                                    </button>
+                                </div>
+                            </h:panelGroup>
+                        </div>
+                    </div>
+                </ui:repeat>
+            </div>
+        </h:panelGroup>
+
+        <!-- Stan pusty -->
+        <h:panelGroup rendered="#{empty productController.products}">
+            <div class="empty-state">
+                <h3>🔍 Brak produktów</h3>
+                <p>Nie znaleźliśmy produktów spełniających Twoje kryteria wyszukiwania.</p>
+                <h:commandButton value="🔄 Pokaż wszystkie produkty"
+                                 action="#{productController.clearFilters}"
+                                 styleClass="btn btn-primary" />
+            </div>
+        </h:panelGroup>
     </div>
 
+    <!-- Nawigacja -->
+    <div class="navigation">
+        <div class="nav-content">
+            <h:link outcome="/index" value="🏠 Strona główna" />
+            <h:panelGroup rendered="#{userController.loggedIn}">
+                <h:link outcome="/user/cart" value="🛒 Koszyk (#{cartController.cartItemCount})" />
+                <h:link outcome="/user/orders" value="📦 Moje zamówienia" />
+            </h:panelGroup>
+            <h:panelGroup rendered="#{userController.admin}">
+                <h:link outcome="/admin/products" value="🛠️ Panel admin" />
+            </h:panelGroup>
+        </div>
+    </div>
+
+    <script>
+        //<![CDATA[
+        function increaseQuantity(productId) {
+            const input = document.getElementById('quantity_' + productId);
+            const max = parseInt(input.getAttribute('max'));
+            const current = parseInt(input.value);
+            if (current < max) {
+                input.value = current + 1;
+            }
+        }
+
+        function decreaseQuantity(productId) {
+            const input = document.getElementById('quantity_' + productId);
+            const current = parseInt(input.value);
+            if (current > 1) {
+                input.value = current - 1;
+            }
+        }
+
+        /* Aktualizuj wartość quantity przed wysłaniem formularza */
+        document.addEventListener('click', function(e) {
+            if (e.target.matches('input[value*="Do koszyka"]')) {
+                const form = e.target.closest('form');
+                const quantityInput = form.querySelector('input[type="number"]');
+                if (quantityInput) {
+                    /* Można tutaj dodać logikę przekazywania ilości */
+                    console.log('Adding to cart with quantity:', quantityInput.value);
+                }
+            }
+        });
+
+        /* Auto-refresh co 5 minut */
+        setInterval(function() {
+            if (document.hidden) return;
+            console.log('Auto-refresh check...');
+        }, 300000);
+        //]]>
+    </script>
 </h:body>
 </html>
