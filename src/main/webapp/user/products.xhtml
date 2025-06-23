@@ -144,6 +144,13 @@
             color: #212529;
         }
 
+        .btn:disabled {
+            background: #e9ecef;
+            color: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .products-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -244,35 +251,59 @@
             text-align: center;
         }
 
-        .product-actions {
-            display: flex;
-            gap: 0.5rem;
-        }
-
         .quantity-selector {
             display: flex;
             align-items: center;
             margin-bottom: 1rem;
+            gap: 0.5rem;
         }
 
-        .quantity-selector button {
-            background: #e9ecef;
-            border: 1px solid #ced4da;
-            width: 30px;
-            height: 30px;
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            border: 2px solid #e1e5e9;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .quantity-controls button {
+            background: #f8f9fa;
+            border: none;
+            width: 35px;
+            height: 35px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
         }
 
-        .quantity-selector input {
+        .quantity-controls button:hover:not(:disabled) {
+            background: #e9ecef;
+        }
+
+        .quantity-controls button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .quantity-controls input {
+            border: none;
             width: 60px;
             text-align: center;
-            border: 1px solid #ced4da;
-            border-left: none;
-            border-right: none;
-            height: 30px;
+            height: 35px;
+            font-weight: bold;
+        }
+
+        .quantity-controls input:focus {
+            outline: none;
+            background: #f8f9fa;
+        }
+
+        .product-actions {
+            display: flex;
+            gap: 0.5rem;
         }
 
         .messages {
@@ -371,6 +402,11 @@
                 width: 100%;
                 justify-content: space-between;
             }
+
+            .quantity-selector {
+                flex-direction: column;
+                align-items: stretch;
+            }
         }
 
         .loading {
@@ -378,9 +414,41 @@
             padding: 2rem;
             color: #666;
         }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </h:head>
 <h:body>
+    <!-- Loading overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+
     <!-- Header -->
     <div class="header">
         <div class="header-content">
@@ -501,28 +569,36 @@
                                 <h:outputText value="Produkt chwilowo niedostępny" rendered="#{product.stockQuantity eq 0}" />
                             </div>
 
-                            <!-- Akcje -->
-                            <h:form rendered="#{product.stockQuantity gt 0}">
+                            <!-- Formularz dodawania do koszyka -->
+                            <h:form rendered="#{product.stockQuantity gt 0}" id="cartForm_#{product.id}">
+                                <!-- Ukryte pole dla ilości -->
+                                <h:inputHidden id="selectedQuantity" value="#{productController.selectedQuantity}" />
+
                                 <!-- Selektor ilości -->
                                 <div class="quantity-selector">
                                     <label for="quantity_#{product.id}" style="margin-right: 0.5rem; font-weight: 500;">Ilość:</label>
-                                    <button type="button" onclick="decreaseQuantity('#{product.id}')"
-                                            style="border-radius: 5px 0 0 5px;">−</button>
-                                    <input type="number" id="quantity_#{product.id}" value="1" min="1"
-                                           max="#{product.stockQuantity gt 10 ? 10 : product.stockQuantity}"/>
-                                    <button type="button" onclick="increaseQuantity('#{product.id}')"
-                                            style="border-radius: 0 5px 5px 0;">+</button>
+                                    <div class="quantity-controls">
+                                        <button type="button" onclick="decreaseQuantity('#{product.id}')" id="decreaseBtn_#{product.id}">−</button>
+                                        <input type="number" id="quantity_#{product.id}" value="1" min="1"
+                                               max="#{product.stockQuantity gt 10 ? 10 : product.stockQuantity}"
+                                               onchange="updateSelectedQuantity('#{product.id}')"/>
+                                        <button type="button" onclick="increaseQuantity('#{product.id}')" id="increaseBtn_#{product.id}">+</button>
+                                    </div>
                                 </div>
 
                                 <div class="product-actions">
                                     <h:commandButton value="🛒 Do koszyka"
-                                                     action="#{cartController.addToCart(product.id, 1)}"
+                                                     action="#{productController.addToCartWithQuantity(product.id)}"
                                                      styleClass="btn btn-success"
                                                      style="flex: 1;"
-                                                     onclick="this.form.elements['quantity_#{product.id}'].value"/>
+                                                     onclick="prepareCartSubmission('#{product.id}')"
+                                                     id="addToCartBtn_#{product.id}">
+                                        <f:ajax execute="@form" render="@form :messages" />
+                                    </h:commandButton>
                                 </div>
                             </h:form>
 
+                            <!-- Produkt niedostępny -->
                             <h:panelGroup rendered="#{product.stockQuantity eq 0}">
                                 <div class="product-actions">
                                     <button class="btn btn-secondary" disabled="disabled" style="flex: 1;">
@@ -566,34 +642,180 @@
         //<![CDATA[
         function increaseQuantity(productId) {
             const input = document.getElementById('quantity_' + productId);
+            const increaseBtn = document.getElementById('increaseBtn_' + productId);
             const max = parseInt(input.getAttribute('max'));
-            const current = parseInt(input.value);
+            const current = parseInt(input.value) || 1;
+
             if (current < max) {
                 input.value = current + 1;
+                updateSelectedQuantity(productId);
             }
+
+            // Aktualizuj stan przycisków
+            updateButtonStates(productId);
         }
 
         function decreaseQuantity(productId) {
             const input = document.getElementById('quantity_' + productId);
-            const current = parseInt(input.value);
+            const decreaseBtn = document.getElementById('decreaseBtn_' + productId);
+            const current = parseInt(input.value) || 1;
+
             if (current > 1) {
                 input.value = current - 1;
+                updateSelectedQuantity(productId);
+            }
+
+            // Aktualizuj stan przycisków
+            updateButtonStates(productId);
+        }
+
+        function updateSelectedQuantity(productId) {
+            const input = document.getElementById('quantity_' + productId);
+            const quantity = parseInt(input.value) || 1;
+
+            // Aktualizuj ukryte pole selectedQuantity w formularzu
+            const form = document.getElementById('cartForm_' + productId);
+            if (form) {
+                const hiddenField = form.querySelector('input[id*="selectedQuantity"]');
+                if (hiddenField) {
+                    hiddenField.value = quantity;
+                }
+            }
+
+            // Zapisz w sessionStorage jako backup
+            try {
+                sessionStorage.setItem('quantity_' + productId, quantity.toString());
+            } catch (e) {
+                console.log('Cannot save to sessionStorage');
+            }
+
+            // Aktualizuj stan przycisków
+            updateButtonStates(productId);
+        }
+
+        function updateButtonStates(productId) {
+            const input = document.getElementById('quantity_' + productId);
+            const decreaseBtn = document.getElementById('decreaseBtn_' + productId);
+            const increaseBtn = document.getElementById('increaseBtn_' + productId);
+
+            if (!input || !decreaseBtn || !increaseBtn) return;
+
+            const quantity = parseInt(input.value) || 1;
+            const max = parseInt(input.getAttribute('max'));
+            const min = parseInt(input.getAttribute('min')) || 1;
+
+            // Sprawdź granice i ustaw stan przycisków
+            decreaseBtn.disabled = quantity <= min;
+            increaseBtn.disabled = quantity >= max;
+
+            // Wizualne wskazanie stanu
+            decreaseBtn.style.opacity = quantity <= min ? '0.5' : '1';
+            increaseBtn.style.opacity = quantity >= max ? '0.5' : '1';
+        }
+
+        function prepareCartSubmission(productId) {
+            const input = document.getElementById('quantity_' + productId);
+            const button = document.getElementById('addToCartBtn_' + productId);
+            const quantity = parseInt(input.value) || 1;
+
+            // Aktualizuj selectedQuantity
+            updateSelectedQuantity(productId);
+
+            // Pokaż loading
+            showLoading();
+
+            if (button) {
+                const originalText = button.value;
+                button.value = 'Dodawanie...';
+                button.disabled = true;
+
+                // Przywróć przycisk po 5 sekundach (na wypadek błędu)
+                setTimeout(() => {
+                    button.value = originalText;
+                    button.disabled = false;
+                    hideLoading();
+                }, 5000);
+            }
+
+            return true;
+        }
+
+        function showLoading() {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) {
+                overlay.style.display = 'flex';
             }
         }
 
-        /* Aktualizuj wartość quantity przed wysłaniem formularza */
-        document.addEventListener('click', function(e) {
-            if (e.target.matches('input[value*="Do koszyka"]')) {
-                const form = e.target.closest('form');
-                const quantityInput = form.querySelector('input[type="number"]');
-                if (quantityInput) {
-                    /* Można tutaj dodać logikę przekazywania ilości */
-                    console.log('Adding to cart with quantity:', quantityInput.value);
+        function hideLoading() {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
+        }
+
+        // Przywróć wartości po odświeżeniu strony
+        document.addEventListener('DOMContentLoaded', function() {
+            const quantityInputs = document.querySelectorAll('input[id^="quantity_"]');
+            quantityInputs.forEach(input => {
+                const productId = input.id.replace('quantity_', '');
+
+                try {
+                    const savedQuantity = sessionStorage.getItem('quantity_' + productId);
+                    if (savedQuantity) {
+                        input.value = savedQuantity;
+                        updateSelectedQuantity(productId);
+                    }
+                } catch (e) {
+                    console.log('Cannot read from sessionStorage');
                 }
+
+                // Dodaj event listener do manualnych zmian
+                input.addEventListener('change', function() {
+                    const quantity = parseInt(this.value) || 1;
+                    const max = parseInt(this.getAttribute('max'));
+                    const min = parseInt(this.getAttribute('min')) || 1;
+
+                    if (quantity < min) {
+                        this.value = min;
+                    } else if (quantity > max) {
+                        this.value = max;
+                    }
+
+                    updateSelectedQuantity(productId);
+                });
+
+                // Ustaw początkowy stan przycisków
+                updateButtonStates(productId);
+            });
+
+            // Ukryj loading overlay na start
+            hideLoading();
+        });
+
+        // Obsługa AJAX callbacks
+        document.addEventListener('DOMContentLoaded', function() {
+            // Ukryj loading po zakończeniu AJAX
+            if (typeof jsf !== 'undefined') {
+                jsf.ajax.addOnEvent(function(data) {
+                    if (data.status === 'complete') {
+                        hideLoading();
+
+                        // Przywróć przyciski po AJAX
+                        const buttons = document.querySelectorAll('input[id*="addToCartBtn_"]');
+                        buttons.forEach(button => {
+                            if (button.value === 'Dodawanie...') {
+                                const originalText = button.getAttribute('data-original-text') || '🛒 Do koszyka';
+                                button.value = originalText;
+                                button.disabled = false;
+                            }
+                        });
+                    }
+                });
             }
         });
 
-        /* Auto-refresh co 5 minut */
+        // Auto-refresh co 5 minut
         setInterval(function() {
             if (document.hidden) return;
             console.log('Auto-refresh check...');

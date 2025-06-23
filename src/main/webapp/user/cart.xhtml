@@ -148,6 +148,10 @@
         .available { background: #d4edda; color: #155724; }
         .limited { background: #fff3cd; color: #856404; }
         .unavailable { background: #f8d7da; color: #721c24; }
+        .stock-ok { background: #d4edda; color: #155724; }
+        .stock-low { background: #fff3cd; color: #856404; }
+        .stock-insufficient { background: #f8d7da; color: #721c24; }
+        .stock-out { background: #f1f3f4; color: #5f6368; }
 
         .item-price {
             font-size: 1.2rem;
@@ -158,33 +162,46 @@
         .quantity-controls {
             display: flex;
             align-items: center;
-            border: 1px solid #ced4da;
-            border-radius: 5px;
+            border: 2px solid #ced4da;
+            border-radius: 8px;
             overflow: hidden;
+            background: white;
         }
 
         .quantity-controls button {
             background: #f8f9fa;
             border: none;
-            width: 32px;
-            height: 32px;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: background-color 0.2s;
+            font-weight: bold;
         }
 
-        .quantity-controls button:hover {
+        .quantity-controls button:hover:not(:disabled) {
             background: #e9ecef;
+        }
+
+        .quantity-controls button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .quantity-controls input {
             border: none;
-            width: 50px;
+            width: 60px;
             text-align: center;
-            height: 32px;
+            height: 40px;
             background: white;
+            font-weight: bold;
+        }
+
+        .quantity-controls input:focus {
+            outline: none;
+            background: #f8f9fa;
         }
 
         .item-total {
@@ -389,6 +406,48 @@
             align-items: center;
             justify-content: space-between;
         }
+
+        /* AJAX Loading States */
+        .ajax-loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .quantity-updating {
+            position: relative;
+        }
+
+        .quantity-updating::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 16px;
+            height: 16px;
+            margin: -8px 0 0 -8px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .cart-actions-bar {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cart-actions-bar .btn {
+            margin: 0 0.25rem;
+        }
     </style>
 </h:head>
 <h:body>
@@ -421,7 +480,7 @@
         </div>
 
         <!-- Komunikaty -->
-        <div class="messages">
+        <div class="messages" id="messages">
             <h:messages globalOnly="true"
                         infoClass="alert alert-success"
                         errorClass="alert alert-danger"
@@ -439,7 +498,9 @@
                 <h:form style="margin: 0;">
                     <h:commandButton value="🔄 Synchronizuj"
                                      action="#{cartController.synchronizeCart}"
-                                     styleClass="btn btn-warning" />
+                                     styleClass="btn btn-warning">
+                        <f:ajax execute="@this" render="@form :messages :cartForm" />
+                    </h:commandButton>
                 </h:form>
             </div>
         </h:panelGroup>
@@ -454,8 +515,8 @@
                     </div>
 
                     <h:form id="cartForm">
-                        <ui:repeat value="#{cartController.cartItems}" var="item">
-                            <div class="cart-item">
+                        <ui:repeat value="#{cartController.cartItems}" var="item" varStatus="status">
+                            <div class="cart-item" id="cartItem_#{item.id}">
                                 <!-- Obrazek -->
                                 <div class="item-image">
                                     <h:panelGroup rendered="#{not empty item.product.imageUrl}">
@@ -485,21 +546,46 @@
                                     </h:outputText>
                                 </div>
 
-                                <!-- Kontrola ilości -->
-                                <div class="quantity-controls">
+                                <!-- Kontrola ilości z AJAX -->
+                                <div class="quantity-controls" id="quantityControls_#{item.id}">
                                     <h:commandButton value="−"
                                                      action="#{cartController.updateQuantity(item.id, item.quantity - 1)}"
                                                      disabled="#{item.quantity <= 1}"
-                                                     onclick="return confirm('Czy zmniejszyć ilość?')"/>
+                                                     styleClass="quantity-btn"
+                                                     onclick="showQuantityLoading('#{item.id}')"
+                                                     id="decreaseBtn_#{item.id}">
+                                        <f:ajax execute="@this"
+                                                render=":cartForm:cartItem_#{item.id} :cartForm:cartSummary :messages"
+                                                onevent="handleQuantityAjax" />
+                                    </h:commandButton>
 
-                                    <input type="number" value="#{item.quantity}" min="1"
-                                           max="#{cartController.getMaxQuantityForItem(item)}"
-                                           onchange="updateQuantity(#{item.id}, this.value)" readonly="readonly"/>
+                                    <h:inputText value="#{item.quantity}"
+                                                 styleClass="quantity-input"
+                                                 size="3"
+                                                 min="1"
+                                                 max="#{cartController.getMaxQuantityForItem(item)}"
+                                                 id="quantityInput_#{item.id}"
+                                                 onchange="validateAndUpdateQuantity(this, #{item.id})">
+                                        <f:convertNumber integerOnly="true" />
+                                        <f:ajax event="change"
+                                                listener="#{cartController.updateQuantityAjax}"
+                                                render=":cartForm:cartItem_#{item.id} :cartForm:cartSummary :messages"
+                                                onevent="handleQuantityAjax">
+                                            <f:attribute name="itemId" value="#{item.id}" />
+                                            <f:attribute name="newQuantity" value="#{item.quantity}" />
+                                        </f:ajax>
+                                    </h:inputText>
 
                                     <h:commandButton value="+"
                                                      action="#{cartController.updateQuantity(item.id, item.quantity + 1)}"
                                                      disabled="#{item.quantity >= cartController.getMaxQuantityForItem(item)}"
-                                                     onclick="return confirm('Czy zwiększyć ilość?')"/>
+                                                     styleClass="quantity-btn"
+                                                     onclick="showQuantityLoading('#{item.id}')"
+                                                     id="increaseBtn_#{item.id}">
+                                        <f:ajax execute="@this"
+                                                render=":cartForm:cartItem_#{item.id} :cartForm:cartSummary :messages"
+                                                onevent="handleQuantityAjax" />
+                                    </h:commandButton>
                                 </div>
 
                                 <!-- Suma za pozycję -->
@@ -514,29 +600,37 @@
                                     <h:commandButton value="🗑️ Usuń"
                                                      action="#{cartController.removeFromCart(item.id)}"
                                                      styleClass="btn btn-danger"
-                                                     onclick="return confirm('Czy na pewno usunąć ten produkt z koszyka?')"/>
+                                                     onclick="return confirm('Czy na pewno usunąć ten produkt z koszyka?')">
+                                        <f:ajax execute="@this" render="@form :messages" />
+                                    </h:commandButton>
                                 </div>
                             </div>
                         </ui:repeat>
 
                         <!-- Akcje dla całego koszyka -->
-                        <div style="padding: 1.5rem; background: #f8f9fa; border-top: 1px solid #e9ecef;">
-                            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                        <div class="cart-actions-bar">
+                            <div>
                                 <h:commandButton value="🔄 Odśwież koszyk"
-                                                 action="#{cartController.loadCart}"
-                                                 styleClass="btn btn-secondary" />
+                                                 action="#{cartController.forceRefreshCart}"
+                                                 styleClass="btn btn-secondary">
+                                    <f:ajax execute="@this" render="@form :messages" />
+                                </h:commandButton>
+                            </div>
 
+                            <div>
                                 <h:commandButton value="🗑️ Wyczyść koszyk"
                                                  action="#{cartController.clearCart}"
                                                  styleClass="btn btn-danger"
-                                                 onclick="return confirm('Czy na pewno wyczyścić cały koszyk?')" />
+                                                 onclick="return confirm('Czy na pewno wyczyścić cały koszyk?')">
+                                    <f:ajax execute="@this" render="@form :messages" />
+                                </h:commandButton>
                             </div>
                         </div>
                     </h:form>
                 </div>
 
                 <!-- Podsumowanie -->
-                <div class="cart-summary">
+                <div class="cart-summary" id="cartSummary">
                     <h3 class="summary-header">📊 Podsumowanie zamówienia</h3>
 
                     <div class="summary-row">
@@ -624,19 +718,59 @@
 
     <script>
         //<![CDATA[
-        function updateQuantity(itemId, newQuantity) {
-            if (newQuantity < 1) return;
-
-            /* Tutaj można dodać AJAX call do aktualizacji */
-            console.log('Updating quantity for item', itemId, 'to', newQuantity);
-
-            /* Na razie przeładowujemy stronę */
-            setTimeout(function() {
-                window.location.reload();
-            }, 100);
+        function showQuantityLoading(itemId) {
+            const controls = document.getElementById('quantityControls_' + itemId);
+            if (controls) {
+                controls.classList.add('quantity-updating');
+            }
         }
 
-        /* Potwierdzenie przed opuszczeniem strony z pełnym koszykiem */
+        function hideQuantityLoading(itemId) {
+            const controls = document.getElementById('quantityControls_' + itemId);
+            if (controls) {
+                controls.classList.remove('quantity-updating');
+            }
+        }
+
+        function validateAndUpdateQuantity(input, itemId) {
+            const newQuantity = parseInt(input.value);
+            const min = parseInt(input.getAttribute('min')) || 1;
+            const max = parseInt(input.getAttribute('max')) || 100;
+
+            if (isNaN(newQuantity) || newQuantity < min) {
+                input.value = min;
+                return false;
+            }
+
+            if (newQuantity > max) {
+                input.value = max;
+                alert('Maksymalna dostępna ilość to ' + max + ' sztuk');
+                return false;
+            }
+
+            showQuantityLoading(itemId);
+            return true;
+        }
+
+        // Obsługa eventów AJAX
+        function handleQuantityAjax(data) {
+            if (data.status === 'begin') {
+                // Pokaż loading
+                const source = data.source;
+                if (source && source.id) {
+                    const itemId = source.id.split('_')[1]; // Wyciągnij ID z ID elementu
+                    if (itemId) {
+                        showQuantityLoading(itemId);
+                    }
+                }
+            } else if (data.status === 'complete') {
+                // Ukryj loading dla wszystkich elementów
+                const loadingElements = document.querySelectorAll('.quantity-updating');
+                loadingElements.forEach(el => el.classList.remove('quantity-updating'));
+            }
+        }
+
+        // Potwierdzenie przed opuszczeniem strony z pełnym koszykiem
         window.addEventListener('beforeunload', function(e) {
             const cartItems = document.querySelectorAll('.cart-item');
             if (cartItems.length > 0) {
@@ -644,11 +778,46 @@
             }
         });
 
-        /* Auto-save co 30 sekund */
+        // Auto-save co 30 sekund
         setInterval(function() {
             if (document.hidden) return;
-            console.log('Auto-save cart state...');
+            console.log('Auto-checking cart state...');
         }, 30000);
+
+        // Inicjalizacja po załadowaniu strony
+        document.addEventListener('DOMContentLoaded', function() {
+            // Dodaj obsługę AJAX do istniejących elementów
+            if (typeof jsf !== 'undefined') {
+                jsf.ajax.addOnEvent(handleQuantityAjax);
+            }
+
+            // Automatyczne ukrywanie komunikatów po 5 sekundach
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.style.transition = 'opacity 0.5s';
+                    alert.style.opacity = '0';
+                    setTimeout(() => alert.remove(), 500);
+                }, 5000);
+            });
+        });
+
+        // Funkcja odświeżania koszyka
+        function refreshCart() {
+            const refreshBtn = document.querySelector('input[value*="Odśwież"]');
+            if (refreshBtn) {
+                refreshBtn.click();
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl + R - odśwież koszyk
+            if (e.ctrlKey && e.key === 'r') {
+                e.preventDefault();
+                refreshCart();
+            }
+        });
         //]]>
     </script>
 </h:body>

@@ -179,6 +179,11 @@
             color: white;
         }
 
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
         .order-summary {
             background: white;
             border-radius: 15px;
@@ -416,6 +421,39 @@
         .step.completed + .step .step-separator {
             background: #28a745;
         }
+
+        .prefill-button {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            padding: 0.5rem 1rem;
+        }
+
+        .address-preview {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            border: 1px solid #e9ecef;
+        }
+
+        .validation-status {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .validation-valid {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .validation-invalid {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
     </style>
 </h:head>
 <h:body>
@@ -497,29 +535,43 @@
                         <div class="form-section">
                             <h3 class="section-title">🚚 Adres dostawy</h3>
 
+                            <!-- Szybkie wypełnienie z profilu -->
+                            <h:panelGroup rendered="#{not empty userController.currentUser.address}">
+                                <div class="address-preview">
+                                    <strong>💡 Adres z Twojego profilu:</strong><br/>
+                                    #{userController.currentUser.address}
+                                    <br/>
+                                    <h:commandButton value="📋 Użyj tego adresu"
+                                                     action="#{orderController.prepopulateShippingAddress}"
+                                                     styleClass="btn btn-secondary prefill-button">
+                                        <f:ajax execute="@this" render="shippingAddress :messages" />
+                                    </h:commandButton>
+                                </div>
+                            </h:panelGroup>
+
                             <div class="form-group">
                                 <label for="shippingAddress">Pełny adres dostawy: <span class="required">*</span></label>
                                 <h:inputTextarea id="shippingAddress" value="#{orderController.shippingAddress}"
                                                  required="true" requiredMessage="Adres dostawy jest wymagany"
-                                                 placeholder="Wprowadź pełny adres dostawy (ulica, numer, kod pocztowy, miasto)"
-                                                 rows="4"/>
+                                                 placeholder="Wprowadź pełny adres dostawy&#10;(ulica, numer, kod pocztowy, miasto)"
+                                                 rows="4">
+                                    <f:ajax event="change" listener="#{orderController.validateCheckout}"
+                                            render="validationStatus :messages" />
+                                </h:inputTextarea>
                                 <div class="help-text">
                                     Przykład: ul. Kwiatowa 15/23, 00-001 Warszawa
                                 </div>
                             </div>
 
-                            <!-- Szybkie wypełnienie adresem z profilu -->
-                            <h:panelGroup rendered="#{not empty userController.currentUser.address}">
-                                <div style="background: #f8f9fa; padding: 1rem; border-radius: 5px; margin-bottom: 1rem;">
-                                    <strong>💡 Adres z Twojego profilu:</strong><br/>
-                                    #{userController.currentUser.address}
-                                    <br/>
-                                    <h:commandButton value="📋 Użyj tego adresu"
-                                                     onclick="document.getElementById('checkoutForm:shippingAddress').value = '#{userController.currentUser.address}'; return false;"
-                                                     styleClass="btn btn-secondary"
-                                                     style="margin-top: 0.5rem; font-size: 0.9rem; padding: 0.5rem 1rem;"/>
-                                </div>
-                            </h:panelGroup>
+                            <!-- Status walidacji -->
+                            <div id="validationStatus" class="validation-status #{orderController.checkoutValid ? 'validation-valid' : 'validation-invalid'}">
+                                <h:panelGroup rendered="#{orderController.checkoutValid}">
+                                    ✅ Zamówienie jest gotowe do złożenia
+                                </h:panelGroup>
+                                <h:panelGroup rendered="#{not orderController.checkoutValid}">
+                                    ⚠️ Sprawdź dane zamówienia
+                                </h:panelGroup>
+                            </div>
 
                             <!-- Opcje dostawy -->
                             <div class="form-group">
@@ -569,6 +621,7 @@
 
                             <div class="help-text">
                                 💡 Aby zmienić dane kontaktowe, zaktualizuj swój profil użytkownika.
+                                <h:link outcome="/user/profile" value="Przejdź do profilu" style="color: #667eea; text-decoration: underline;"/>
                             </div>
                         </div>
 
@@ -623,7 +676,10 @@
                                              action="#{orderController.placeOrder}"
                                              styleClass="btn btn-success"
                                              style="font-size: 1.1rem; padding: 1rem 2rem;"
-                                             onclick="return confirm('Czy na pewno chcesz złożyć zamówienie?')"/>
+                                             disabled="#{not orderController.checkoutValid}"
+                                             onclick="return confirmOrderPlacement()">
+                                <f:ajax execute="@form" render="@form :messages" />
+                            </h:commandButton>
                         </div>
                     </h:form>
                 </div>
@@ -713,7 +769,7 @@
         });
 
         /* Walidacja przed wysłaniem */
-        function validateCheckout() {
+        function confirmOrderPlacement() {
             const address = document.getElementById('checkoutForm:shippingAddress').value.trim();
 
             if (address.length < 10) {
@@ -721,24 +777,66 @@
                 return false;
             }
 
-            return true;
+            return confirm('Czy na pewno chcesz złożyć to zamówienie?\n\nPo potwierdzeniu otrzymasz email z detalami zamówienia.');
         }
 
-        /* Dodaj walidację do przycisku */
+        /* Ostrzeżenie przed opuszczeniem strony */
+        window.addEventListener('beforeunload', function(e) {
+            const address = document.getElementById('checkoutForm:shippingAddress');
+            if (address && address.value.trim().length > 0) {
+                e.returnValue = 'Czy na pewno chcesz opuścić stronę? Twoje zamówienie nie zostanie złożone.';
+            }
+        });
+
+        /* Auto-save adresu w localStorage */
         document.addEventListener('DOMContentLoaded', function() {
-            const submitBtn = document.querySelector('input[value*="Złóż zamówienie"]');
-            if (submitBtn) {
-                submitBtn.addEventListener('click', function(e) {
-                    if (!validateCheckout()) {
-                        e.preventDefault();
+            const addressField = document.getElementById('checkoutForm:shippingAddress');
+            if (addressField) {
+                // Przywróć zapisany adres
+                try {
+                    const savedAddress = localStorage.getItem('checkout_address');
+                    if (savedAddress && !addressField.value) {
+                        addressField.value = savedAddress;
+                    }
+                } catch (e) {
+                    console.log('Cannot read from localStorage');
+                }
+
+                // Zapisuj zmiany
+                addressField.addEventListener('input', function() {
+                    try {
+                        localStorage.setItem('checkout_address', this.value);
+                    } catch (e) {
+                        console.log('Cannot save to localStorage');
                     }
                 });
             }
         });
 
-        /* Ostrzeżenie przed opuszczeniem strony */
-        window.addEventListener('beforeunload', function(e) {
-            e.returnValue = 'Czy na pewno chcesz opuścić stronę? Twoje zamówienie nie zostanie złożone.';
+        /* Wyczyść zapisany adres po złożeniu zamówienia */
+        function clearSavedAddress() {
+            try {
+                localStorage.removeItem('checkout_address');
+            } catch (e) {
+                console.log('Cannot clear localStorage');
+            }
+        }
+
+        /* Real-time walidacja adresu */
+        document.addEventListener('DOMContentLoaded', function() {
+            const addressField = document.getElementById('checkoutForm:shippingAddress');
+            if (addressField) {
+                addressField.addEventListener('input', function() {
+                    const length = this.value.trim().length;
+                    const validationStatus = document.getElementById('validationStatus');
+
+                    if (length >= 10) {
+                        this.style.borderColor = '#28a745';
+                    } else {
+                        this.style.borderColor = '#dc3545';
+                    }
+                });
+            }
         });
         //]]>
     </script>

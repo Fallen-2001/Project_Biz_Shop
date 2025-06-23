@@ -69,6 +69,12 @@ public class ProductController {
         return addToCart(productId, 1);
     }
 
+    // Nowa metoda używająca selectedQuantity
+    public String addToCartWithQuantity(Long productId) {
+        Integer quantity = selectedQuantity != null ? selectedQuantity : 1;
+        return addToCart(productId, quantity);
+    }
+
     public String addToCart(Long productId, Integer quantity) {
         if (!authService.isLoggedIn()) {
             addErrorMessage("Musisz być zalogowany, aby dodać produkt do koszyka");
@@ -107,6 +113,13 @@ public class ProductController {
                 return null;
             }
 
+            // Sprawdź maksymalną dozwoloną ilość
+            int maxAllowed = getMaxQuantityForProduct(product);
+            if (quantity > maxAllowed) {
+                addErrorMessage(String.format("Maksymalna ilość to %d sztuk", maxAllowed));
+                return null;
+            }
+
             cartService.addToCart(productId, quantity);
 
             String message = quantity == 1 ?
@@ -116,6 +129,9 @@ public class ProductController {
             addInfoMessage(message);
             logger.info("Product {} added to cart for user: {} with quantity: {}",
                     productId, authService.getCurrentUser().getUsername(), quantity);
+
+            // Reset selectedQuantity po dodaniu
+            selectedQuantity = 1;
 
         } catch (Exception e) {
             logger.error("Error adding product {} to cart with quantity {}", productId, quantity, e);

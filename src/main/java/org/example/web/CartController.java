@@ -8,6 +8,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import org.example.model.CartItem;
 import org.example.model.User;
+import org.example.model.Product;
 import org.example.service.AuthServiceInterface;
 import org.example.service.CartService;
 import org.example.service.CartServiceInterface;
@@ -18,6 +19,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Named
 @SessionScoped
@@ -40,24 +42,47 @@ public class CartController implements Serializable {
     }
 
     public void loadCart() {
+        loadCartSafely();
+    }
+
+    // Bezpieczne ładowanie koszyka z obsługą błędów
+    public void loadCartSafely() {
         User currentUser = authService.getCurrentUser();
         if (currentUser != null) {
             try {
-                cartItems = cartService.getCartItems(currentUser);
-                cartLoaded = true;
+                // Wymuś ponowne załadowanie z bazy danych
+                List<CartItem> freshCartItems = cartService.getCartItems(currentUser);
+
+                // Sprawdź dostępność wszystkich produktów
+                for (CartItem item : freshCartItems) {
+                    if (item.getProduct() != null) {
+                        if (!item.getProduct().isActive() ||
+                                item.getProduct().getStockQuantity() == null ||
+                                item.getProduct().getStockQuantity() <= 0) {
+                            logger.warn("Found unavailable product in cart: {}",
+                                    item.getProduct().getName());
+                        }
+                    }
+                }
+
+                this.cartItems = freshCartItems;
+                this.cartLoaded = true;
 
                 // Sprawdź czy nie ma problemów z dostępnością produktów
                 checkCartAvailability();
 
-                logger.debug("Cart loaded for user: {} with {} items", currentUser.getUsername(), cartItems.size());
+                logger.debug("Cart loaded safely for user: {} with {} items",
+                        currentUser.getUsername(), cartItems.size());
+
             } catch (Exception e) {
-                logger.error("Error loading cart for user: {}", currentUser.getUsername(), e);
-                addErrorMessage("Błąd podczas ładowania koszyka: " + e.getMessage());
-                cartItems = new ArrayList<>();
+                logger.error("Error loading cart safely for user: {}", currentUser.getUsername(), e);
+                this.cartItems = new ArrayList<>();
+                this.cartLoaded = false;
+                addErrorMessage("Błąd podczas ładowania koszyka. Spróbuj ponownie.");
             }
         } else {
-            cartItems = new ArrayList<>();
-            cartLoaded = false;
+            this.cartItems = new ArrayList<>();
+            this.cartLoaded = false;
         }
     }
 
@@ -96,27 +121,86 @@ public class CartController implements Serializable {
         return null; // Pozostań na tej samej stronie
     }
 
+    // Metoda AJAX dla aktualizacji ilości
+    public void updateQuantityAjax(Long cartItemId, Integer newQuantity) {
+        try {
+            if (newQuantity != null && newQuantity > 0) {
+                updateQuantity(cartItemId, newQuantity);
+                // Komunikat zostanie dodany w updateQuantity
+            }
+        } catch (Exception e) {
+            logger.error("AJAX error updating quantity for item {}", cartItemId, e);
+            addErrorMessage("Błąd podczas aktualizacji: " + e.getMessage());
+        }
+    }
+
     public void updateQuantity(Long cartItemId, Integer newQuantity) {
+        User currentUser = authService.getCurrentUser();
+        if (currentUser == null) {
+            addErrorMessage("Musisz być zalogowany");
+            return;
+        }
+
+        logger.debug("Updating cart item {} quantity to {}", cartItemId, newQuantity);
+
         if (newQuantity == null || newQuantity < 0) {
             addErrorMessage("Nieprawidłowa ilość");
             return;
         }
 
+        if (newQuantity == 0) {
+            removeFromCart(cartItemId);
+            return;
+        }
+
+        if (newQuantity > 100) {
+            addErrorMessage("Maksymalna ilość to 100 sztuk");
+            return;
+        }
+
         try {
-            if (newQuantity == 0) {
-                removeFromCart(cartItemId);
+            // Znajdź element koszyka i sprawdź czy należy do użytkownika
+            List<CartItem> userCartItems = cartService.getCartItems(currentUser);
+            Optional<CartItem> cartItemOpt = userCartItems.stream()
+                    .filter(item -> item.getId().equals(cartItemId))
+                    .findFirst();
+
+            if (cartItemOpt.isEmpty()) {
+                addErrorMessage("Element koszyka nie został znaleziony");
+                loadCart(); // Odśwież koszyk
                 return;
             }
 
+            CartItem cartItem = cartItemOpt.get();
+            Product product = cartItem.getProduct();
+
+            // Sprawdź dostępność produktu
+            if (!product.isActive()) {
+                addErrorMessage("Produkt nie jest już dostępny");
+                loadCart(); // Odśwież koszyk
+                return;
+            }
+
+            if (product.getStockQuantity() == null || !product.isAvailable(newQuantity)) {
+                String message = String.format(
+                        "Niewystarczająca ilość w magazynie. Dostępne: %d, żądane: %d",
+                        product.getStockQuantity() != null ? product.getStockQuantity() : 0, newQuantity);
+                addErrorMessage(message);
+                loadCart(); // Odśwież koszyk
+                return;
+            }
+
+            Integer oldQuantity = cartItem.getQuantity();
             cartService.updateCartItemQuantity(cartItemId, newQuantity);
-            loadCart(); // Odśwież koszyk
-            addInfoMessage("Ilość została zaktualizowana");
-            logger.info("Cart item {} quantity updated to {}", cartItemId, newQuantity);
+            loadCart(); // Odśwież koszyk po zmianie
+
+            addInfoMessage(String.format("Zaktualizowano ilość z %d na %d", oldQuantity, newQuantity));
+            logger.info("Updated cart item {} quantity from {} to {}", cartItemId, oldQuantity, newQuantity);
 
         } catch (Exception e) {
             logger.error("Error updating cart item {} quantity to {}", cartItemId, newQuantity, e);
             addErrorMessage("Błąd podczas aktualizacji ilości: " + e.getMessage());
-            loadCart(); // Odśwież koszyk aby pokazać aktualny stan
+            loadCart(); // Odśwież koszyk w przypadku błędu
         }
     }
 
@@ -162,6 +246,34 @@ public class CartController implements Serializable {
                 logger.error("Error synchronizing cart for user: {}", currentUser.getUsername(), e);
                 addErrorMessage("Błąd podczas synchronizacji koszyka: " + e.getMessage());
             }
+        }
+    }
+
+    // Wymuszenie odświeżenia koszyka
+    public void forceRefreshCart() {
+        this.cartLoaded = false;
+        this.cartItems.clear();
+        loadCartSafely();
+        addInfoMessage("Koszyk został odświeżony");
+    }
+
+    // Sprawdzenie czy koszyk jest ważny
+    public boolean isCartValid() {
+        if (cartItems == null || cartItems.isEmpty()) {
+            return true; // Pusty koszyk jest zawsze ważny
+        }
+
+        try {
+            for (CartItem item : cartItems) {
+                Product product = item.getProduct();
+                if (!product.isActive() || !product.isAvailable(item.getQuantity())) {
+                    return false;
+                }
+            }
+            return true;
+        } catch (Exception e) {
+            logger.error("Error checking cart validity", e);
+            return false;
         }
     }
 
@@ -215,6 +327,11 @@ public class CartController implements Serializable {
     public boolean canPlaceOrder() {
         User currentUser = authService.getCurrentUser();
         if (currentUser == null || isCartEmpty()) {
+            return false;
+        }
+
+        // Sprawdź aktualny stan w bazie danych
+        if (!isCartValid()) {
             return false;
         }
 

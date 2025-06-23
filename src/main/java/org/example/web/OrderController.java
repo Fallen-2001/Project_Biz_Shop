@@ -11,6 +11,7 @@ import org.example.model.OrderStatus;
 import org.example.model.Role;
 import org.example.model.User;
 import org.example.service.AuthServiceInterface;
+import org.example.service.CartService;
 import org.example.service.CartServiceInterface;
 import org.example.service.OrderService;
 import org.slf4j.Logger;
@@ -71,34 +72,85 @@ public class OrderController implements Serializable {
             return "/login.xhtml?faces-redirect=true";
         }
 
+        User currentUser = authService.getCurrentUser();
+
+        // Walidacja adresu dostawy
         if (shippingAddress == null || shippingAddress.trim().isEmpty()) {
             addErrorMessage("Adres dostawy jest wymagany");
             return null;
         }
 
-        if (cartService.isCartEmpty(authService.getCurrentUser())) {
+        if (shippingAddress.trim().length() < 10) {
+            addErrorMessage("Adres dostawy musi być bardziej szczegółowy (minimum 10 znaków)");
+            return null;
+        }
+
+        // Sprawdź koszyk przed złożeniem zamówienia
+        if (cartService.isCartEmpty(currentUser)) {
             addErrorMessage("Koszyk jest pusty");
             return "/user/cart.xhtml?faces-redirect=true";
         }
 
+        // Dodatkowe sprawdzenie dostępności produktów
+        if (cartService instanceof CartService) {
+            CartService cs = (CartService) cartService;
+
+            // Synchronizuj koszyk przed złożeniem zamówienia
+            try {
+                cs.synchronizeCartWithStock(currentUser);
+            } catch (Exception e) {
+                logger.error("Error synchronizing cart before order placement", e);
+                addErrorMessage("Błąd podczas synchronizacji koszyka");
+                return null;
+            }
+
+            // Sprawdź czy nadal można złożyć zamówienie
+            if (!cs.canPlaceOrder(currentUser)) {
+                addErrorMessage("Nie można złożyć zamówienia. Niektóre produkty są niedostępne.");
+                return "/user/cart.xhtml?faces-redirect=true";
+            }
+
+            // Sprawdź czy są niedostępne produkty
+            List<org.example.model.CartItem> unavailableItems = cs.getUnavailableCartItems(currentUser);
+            if (!unavailableItems.isEmpty()) {
+                StringBuilder message = new StringBuilder("Następujące produkty są niedostępne: ");
+                for (org.example.model.CartItem item : unavailableItems) {
+                    message.append(item.getProduct().getName()).append(", ");
+                }
+                // Usuń ostatni przecinek
+                if (message.length() > 2) {
+                    message.setLength(message.length() - 2);
+                }
+                addErrorMessage(message.toString());
+                return "/user/cart.xhtml?faces-redirect=true";
+            }
+        }
+
         try {
-            User currentUser = authService.getCurrentUser();
+            // Utwórz zamówienie
             Order order = orderService.createOrderFromCart(currentUser, shippingAddress.trim());
 
-            // Wyczyść adres dostawy
+            // Wyczyść adres dostawy po pomyślnym złożeniu zamówienia
             shippingAddress = null;
 
             // Odśwież listę zamówień
             loadOrders();
 
-            addInfoMessage("Zamówienie zostało złożone pomyślnie! Numer zamówienia: " + order.getId());
+            // Przekieruj z komunikatem sukcesu
+            addInfoMessage(String.format("Zamówienie zostało złożone pomyślnie! Numer zamówienia: #%d", order.getId()));
             logger.info("Order {} placed successfully by user: {}", order.getId(), currentUser.getUsername());
 
-            return "/user/orders.xhtml?faces-redirect=true";
+            return "/user/orders.xhtml?faces-redirect=true&orderPlaced=true";
 
         } catch (Exception e) {
-            logger.error("Error placing order for user: {}", authService.getCurrentUser().getUsername(), e);
+            logger.error("Error placing order for user: {}", currentUser.getUsername(), e);
             addErrorMessage("Błąd podczas składania zamówienia: " + e.getMessage());
+
+            // W przypadku błędu, sprawdź czy koszyk nie został przypadkowo wyczyszczony
+            if (cartService.isCartEmpty(currentUser)) {
+                return "/user/products.xhtml?faces-redirect=true";
+            }
+
             return null;
         }
     }
@@ -196,6 +248,78 @@ public class OrderController implements Serializable {
             case DELIVERED -> "background-color: #d1e7dd; color: #0f5132;";
             case CANCELLED -> "background-color: #f8d7da; color: #721c24;";
         };
+    }
+
+    // Metody pomocnicze dla checkout
+
+    public boolean isCheckoutValid() {
+        User currentUser = authService.getCurrentUser();
+        if (currentUser == null) {
+            return false;
+        }
+
+        // Sprawdź czy koszyk nie jest pusty
+        if (cartService.isCartEmpty(currentUser)) {
+            return false;
+        }
+
+        // Sprawdź adres dostawy
+        if (shippingAddress == null || shippingAddress.trim().length() < 10) {
+            return false;
+        }
+
+        // Sprawdź dostępność produktów
+        if (cartService instanceof CartService) {
+            return ((CartService) cartService).canPlaceOrder(currentUser);
+        }
+
+        return true;
+    }
+
+    public void validateCheckout() {
+        User currentUser = authService.getCurrentUser();
+        if (currentUser == null) {
+            addErrorMessage("Musisz być zalogowany");
+            return;
+        }
+
+        if (cartService.isCartEmpty(currentUser)) {
+            addErrorMessage("Koszyk jest pusty");
+            return;
+        }
+
+        if (shippingAddress == null || shippingAddress.trim().length() < 10) {
+            addErrorMessage("Wprowadź pełny adres dostawy (minimum 10 znaków)");
+            return;
+        }
+
+        // Synchronizuj koszyk i sprawdź dostępność
+        if (cartService instanceof CartService) {
+            CartService cs = (CartService) cartService;
+            try {
+                cs.synchronizeCartWithStock(currentUser);
+
+                if (!cs.canPlaceOrder(currentUser)) {
+                    addErrorMessage("Niektóre produkty w koszyku są niedostępne. Sprawdź koszyk.");
+                    return;
+                }
+            } catch (Exception e) {
+                logger.error("Error validating checkout", e);
+                addErrorMessage("Błąd podczas walidacji zamówienia");
+            }
+        }
+
+        addInfoMessage("Zamówienie jest gotowe do złożenia");
+    }
+
+    public void prepopulateShippingAddress() {
+        User currentUser = authService.getCurrentUser();
+        if (currentUser != null && currentUser.getAddress() != null && !currentUser.getAddress().trim().isEmpty()) {
+            if (shippingAddress == null || shippingAddress.trim().isEmpty()) {
+                shippingAddress = currentUser.getAddress();
+                addInfoMessage("Uzupełniono adres dostawy z Twojego profilu");
+            }
+        }
     }
 
     // Gettery i settery
