@@ -8,6 +8,7 @@ import jakarta.inject.Named;
 import org.example.model.Role;
 import org.example.model.User;
 import org.example.service.AuthServiceInterface;
+import org.example.service.SimpleDataInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,8 +24,22 @@ public class AuthController {
     @Inject
     private AuthServiceInterface authService;
 
+    @Inject
+    private SimpleDataInitializer dataInitializer;
+
     public String login() {
         logger.debug("Attempting login for username: {}", username);
+
+        // Upewnij się, że dane są zainicjalizowane
+        try {
+            dataInitializer.ensureDataInitialized();
+        } catch (Exception e) {
+            logger.error("Failed to initialize data", e);
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR,
+                            "System initialization error", "Please contact administrator"));
+            return null;
+        }
 
         try {
             User user = authService.login(username, password);

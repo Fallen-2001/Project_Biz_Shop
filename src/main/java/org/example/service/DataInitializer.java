@@ -31,7 +31,8 @@ public class DataInitializer {
     @PostConstruct
     @Transactional
     public void initializeData() {
-        logger.info("Starting data initialization...");
+        logger.info("=== STARTING DATA INITIALIZATION ===");
+        logger.info("=== DataInitializer is being called ===");
 
         try {
             initializeUsers();
