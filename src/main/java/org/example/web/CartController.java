@@ -9,7 +9,7 @@ import jakarta.inject.Named;
 import org.example.model.CartItem;
 import org.example.model.User;
 import org.example.service.AuthServiceInterface;
-import org.example.service.CartService;
+import org.example.service.CartServiceInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +25,7 @@ public class CartController implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(CartController.class);
 
     @Inject
-    private CartService cartService;
+    private CartServiceInterface cartService;
 
     @Inject
     private AuthServiceInterface authService;

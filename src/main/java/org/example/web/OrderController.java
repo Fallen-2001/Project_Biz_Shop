@@ -11,7 +11,7 @@ import org.example.model.OrderStatus;
 import org.example.model.Role;
 import org.example.model.User;
 import org.example.service.AuthServiceInterface;
-import org.example.service.CartService;
+import org.example.service.CartServiceInterface;
 import org.example.service.OrderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +30,7 @@ public class OrderController implements Serializable {
     private OrderService orderService;
 
     @Inject
-    private CartService cartService;
+    private CartServiceInterface cartService;
 
     @Inject
     private AuthServiceInterface authService;

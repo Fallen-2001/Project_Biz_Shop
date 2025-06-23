@@ -8,7 +8,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import org.example.model.Product;
 import org.example.service.ProductServiceInterface;
-import org.example.service.CartService;
+import org.example.service.CartServiceInterface;
 import org.example.service.AuthServiceInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +30,7 @@ public class ProductController {
     private ProductServiceInterface productService;
 
     @Inject
-    private CartService cartService;
+    private CartServiceInterface cartService;
 
     @Inject
     private AuthServiceInterface authService;

@@ -27,7 +27,7 @@ public class UserController {
         logger.debug("Attempting to register user: {}", newUser.getUsername());
 
         try {
-            // Walidacja
+            // Walidacja po stronie serwera
             if (!validateRegistration()) {
                 return null;
             }
@@ -45,7 +45,7 @@ public class UserController {
             addInfoMessage("Rejestracja przebiegła pomyślnie! Możesz się teraz zalogować.");
             logger.info("User registered successfully: {}", registeredUser.getUsername());
 
-            return "/login.xhtml?faces-redirect=true";
+            return "/login.xhtml?registered=true&faces-redirect=true";
 
         } catch (Exception e) {
             logger.error("Error during registration for user: {}", newUser.getUsername(), e);
@@ -56,18 +56,28 @@ public class UserController {
 
     public void checkUsernameAvailability() {
         if (newUser.getUsername() != null && !newUser.getUsername().trim().isEmpty()) {
-            boolean available = authService.isUsernameAvailable(newUser.getUsername().trim());
-            if (!available) {
-                addErrorMessage("Nazwa użytkownika jest już zajęta");
+            try {
+                boolean available = authService.isUsernameAvailable(newUser.getUsername().trim());
+                if (!available) {
+                    addErrorMessage("Nazwa użytkownika jest już zajęta");
+                }
+            } catch (Exception e) {
+                logger.error("Error checking username availability", e);
+                addErrorMessage("Błąd podczas sprawdzania nazwy użytkownika");
             }
         }
     }
 
     public void checkEmailAvailability() {
         if (newUser.getEmail() != null && !newUser.getEmail().trim().isEmpty()) {
-            boolean available = authService.isEmailAvailable(newUser.getEmail().trim());
-            if (!available) {
-                addErrorMessage("Adres email jest już używany");
+            try {
+                boolean available = authService.isEmailAvailable(newUser.getEmail().trim());
+                if (!available) {
+                    addErrorMessage("Adres email jest już używany");
+                }
+            } catch (Exception e) {
+                logger.error("Error checking email availability", e);
+                addErrorMessage("Błąd podczas sprawdzania adresu email");
             }
         }
     }
@@ -104,9 +114,17 @@ public class UserController {
         } else if (newUser.getUsername().trim().length() < 3) {
             addErrorMessage("Nazwa użytkownika musi mieć co najmniej 3 znaki");
             valid = false;
-        } else if (!authService.isUsernameAvailable(newUser.getUsername().trim())) {
-            addErrorMessage("Nazwa użytkownika jest już zajęta");
-            valid = false;
+        } else {
+            try {
+                if (!authService.isUsernameAvailable(newUser.getUsername().trim())) {
+                    addErrorMessage("Nazwa użytkownika jest już zajęta");
+                    valid = false;
+                }
+            } catch (Exception e) {
+                logger.error("Error checking username availability during validation", e);
+                addErrorMessage("Błąd podczas sprawdzania nazwy użytkownika");
+                valid = false;
+            }
         }
 
         if (newUser.getPassword() == null || newUser.getPassword().isEmpty()) {
@@ -126,9 +144,17 @@ public class UserController {
             if (!newUser.getEmail().contains("@") || !newUser.getEmail().contains(".")) {
                 addErrorMessage("Nieprawidłowy format adresu email");
                 valid = false;
-            } else if (!authService.isEmailAvailable(newUser.getEmail().trim())) {
-                addErrorMessage("Adres email jest już używany");
-                valid = false;
+            } else {
+                try {
+                    if (!authService.isEmailAvailable(newUser.getEmail().trim())) {
+                        addErrorMessage("Adres email jest już używany");
+                        valid = false;
+                    }
+                } catch (Exception e) {
+                    logger.error("Error checking email availability during validation", e);
+                    addErrorMessage("Błąd podczas sprawdzania adresu email");
+                    valid = false;
+                }
             }
         }
 

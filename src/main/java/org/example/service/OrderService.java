@@ -30,7 +30,7 @@ public class OrderService {
     private ProductDaoInterface productDao;
 
     @Inject
-    private CartService cartService;
+    private CartServiceInterface cartService;
 
     @Inject
     private EmailService emailService;

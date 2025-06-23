@@ -9,7 +9,8 @@ import java.util.Objects;
         uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "product_id"}))
 public class CartItem {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @SequenceGenerator(name = "cartitem_seq", sequenceName = "cartitem_sequence", allocationSize = 1)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

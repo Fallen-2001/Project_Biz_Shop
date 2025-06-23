@@ -23,8 +23,17 @@ public class AuthServiceImpl implements AuthServiceInterface, Serializable {
     @Inject
     private UserDaoInterface userDao;
 
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    // Utwórz encoder jako pole instancji z leniwą inicjalizacją
+    private transient BCryptPasswordEncoder passwordEncoder;
     private User currentUser;
+
+    // Leniwa inicjalizacja encodera
+    private BCryptPasswordEncoder getPasswordEncoder() {
+        if (passwordEncoder == null) {
+            passwordEncoder = new BCryptPasswordEncoder();
+        }
+        return passwordEncoder;
+    }
 
     @Override
     public User login(String username, String password) {
@@ -41,7 +50,7 @@ public class AuthServiceImpl implements AuthServiceInterface, Serializable {
             if (userOpt.isPresent()) {
                 User user = userOpt.get();
 
-                if (passwordEncoder.matches(password, user.getPassword())) {
+                if (getPasswordEncoder().matches(password, user.getPassword())) {
                     logger.info("Successful login for user: {}", username);
                     this.currentUser = user;
                     return user;
@@ -63,32 +72,40 @@ public class AuthServiceImpl implements AuthServiceInterface, Serializable {
     public User register(User user) throws Exception {
         logger.debug("Attempting to register user: {}", user.getUsername());
 
-        validateUser(user);
-
-        if (userDao.existsByUsername(user.getUsername())) {
-            throw new Exception("Nazwa użytkownika już istnieje");
-        }
-
-        if (user.getEmail() != null && userDao.existsByEmail(user.getEmail())) {
-            throw new Exception("Email już jest używany");
-        }
-
-        // Hashowanie hasła
-        String hashedPassword = passwordEncoder.encode(user.getPassword());
-        user.setPassword(hashedPassword);
-
-        // Domyślna rola
-        if (user.getRole() == null) {
-            user.setRole(Role.USER);
-        }
-
         try {
+            validateUser(user);
+
+            if (userDao.existsByUsername(user.getUsername())) {
+                throw new Exception("Nazwa użytkownika już istnieje");
+            }
+
+            if (user.getEmail() != null && !user.getEmail().trim().isEmpty() && userDao.existsByEmail(user.getEmail())) {
+                throw new Exception("Email już jest używany");
+            }
+
+            // Hashowanie hasła
+            String hashedPassword = getPasswordEncoder().encode(user.getPassword());
+            user.setPassword(hashedPassword);
+
+            // Domyślna rola
+            if (user.getRole() == null) {
+                user.setRole(Role.USER);
+            }
+
             userDao.save(user);
             logger.info("User registered successfully: {}", user.getUsername());
             return user;
+
         } catch (Exception e) {
             logger.error("Error registering user: {}", user.getUsername(), e);
-            throw new Exception("Błąd podczas rejestracji użytkownika");
+            // Przekaż oryginalny błąd jeśli to błąd walidacji
+            if (e.getMessage().contains("już istnieje") ||
+                    e.getMessage().contains("już jest używany") ||
+                    e.getMessage().contains("musi mieć") ||
+                    e.getMessage().contains("Nieprawidłowy")) {
+                throw e;
+            }
+            throw new Exception("Błąd podczas rejestracji użytkownika: " + e.getMessage());
         }
     }
 
@@ -97,7 +114,12 @@ public class AuthServiceImpl implements AuthServiceInterface, Serializable {
         if (username == null || username.trim().isEmpty()) {
             return false;
         }
-        return !userDao.existsByUsername(username.trim());
+        try {
+            return !userDao.existsByUsername(username.trim());
+        } catch (Exception e) {
+            logger.error("Error checking username availability: {}", username, e);
+            return false;
+        }
     }
 
     @Override
@@ -105,7 +127,12 @@ public class AuthServiceImpl implements AuthServiceInterface, Serializable {
         if (email == null || email.trim().isEmpty()) {
             return true; // email nie jest wymagany
         }
-        return !userDao.existsByEmail(email.trim());
+        try {
+            return !userDao.existsByEmail(email.trim());
+        } catch (Exception e) {
+            logger.error("Error checking email availability: {}", email, e);
+            return false;
+        }
     }
 
     @Override
@@ -127,14 +154,17 @@ public class AuthServiceImpl implements AuthServiceInterface, Serializable {
         }
     }
 
+    @Override
     public boolean isLoggedIn() {
         return currentUser != null;
     }
 
+    @Override
     public boolean isAdmin() {
         return currentUser != null && currentUser.getRole() == Role.ADMIN;
     }
 
+    @Override
     public boolean isUser() {
         return currentUser != null && currentUser.getRole() == Role.USER;
     }
@@ -152,7 +182,7 @@ public class AuthServiceImpl implements AuthServiceInterface, Serializable {
             throw new Exception("Hasło musi mieć co najmniej 6 znaków");
         }
 
-        if (user.getEmail() != null && !user.getEmail().contains("@")) {
+        if (user.getEmail() != null && !user.getEmail().trim().isEmpty() && !user.getEmail().contains("@")) {
             throw new Exception("Nieprawidłowy format email");
         }
     }

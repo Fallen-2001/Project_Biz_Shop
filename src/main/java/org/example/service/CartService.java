@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 @ApplicationScoped
-public class CartService {
+public class CartService implements CartServiceInterface {
 
     private static final Logger logger = LoggerFactory.getLogger(CartService.class);
 
@@ -29,11 +29,13 @@ public class CartService {
     @Inject
     private AuthServiceInterface authService;
 
+    @Override
     public List<CartItem> getCartItems(User user) {
         logger.debug("Getting cart items for user: {}", user.getUsername());
         return cartDao.findByUser(user);
     }
 
+    @Override
     @Transactional
     public void addToCart(Long productId, Integer quantity) throws Exception {
         User currentUser = authService.getCurrentUser();
@@ -44,6 +46,7 @@ public class CartService {
         addToCart(currentUser, productId, quantity);
     }
 
+    @Override
     @Transactional
     public void addToCart(User user, Long productId, Integer quantity) throws Exception {
         logger.debug("Adding product {} to cart for user: {}", productId, user.getUsername());
@@ -88,6 +91,7 @@ public class CartService {
         }
     }
 
+    @Override
     @Transactional
     public void updateCartItemQuantity(Long cartItemId, Integer newQuantity) throws Exception {
         User currentUser = authService.getCurrentUser();
@@ -128,6 +132,7 @@ public class CartService {
         logger.info("Updated cart item {} quantity to {}", cartItemId, newQuantity);
     }
 
+    @Override
     @Transactional
     public void removeFromCart(Long cartItemId) throws Exception {
         User currentUser = authService.getCurrentUser();
@@ -150,6 +155,7 @@ public class CartService {
         logger.info("Removed cart item {} for user {}", cartItemId, currentUser.getUsername());
     }
 
+    @Override
     @Transactional
     public void clearCart(User user) {
         logger.debug("Clearing cart for user: {}", user.getUsername());
@@ -157,6 +163,7 @@ public class CartService {
         logger.info("Cart cleared for user: {}", user.getUsername());
     }
 
+    @Override
     public BigDecimal getCartTotal(User user) {
         List<CartItem> cartItems = cartDao.findByUser(user);
         return cartItems.stream()
@@ -164,10 +171,12 @@ public class CartService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
+    @Override
     public int getCartItemCount(User user) {
         return cartDao.countByUser(user);
     }
 
+    @Override
     public boolean isCartEmpty(User user) {
         return getCartItemCount(user) == 0;
     }

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+<h:head>
+    <title>Sklep Online</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+        }
+        .welcome-container {
+            background: white;
+            padding: 3rem;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+        }
+        .logo {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+        .btn {
+            display: inline-block;
+            padding: 1rem 2rem;
+            margin: 0.5rem;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #495057;
+            border: 2px solid #dee2e6;
+        }
+        .features {
+            margin-top: 2rem;
+            text-align: left;
+        }
+        .feature {
+            display: flex;
+            align-items: center;
+            margin: 1rem 0;
+            color: #666;
+        }
+        .feature-icon {
+            font-size: 1.5rem;
+            margin-right: 1rem;
+            color: #667eea;
+        }
+    </style>
+</h:head>
+<h:body>
+    <div class="welcome-container">
+        <div class="logo">🛍️ Sklep Online</div>
+        <div class="subtitle">
+            Witamy w naszym nowoczesnym sklepie internetowym!
+        </div>
+
+        <div>
+            <h:link outcome="/login" styleClass="btn btn-primary">
+                Zaloguj się
+            </h:link>
+            <h:link outcome="/register" styleClass="btn btn-secondary">
+                Załóż konto
+            </h:link>
+        </div>
+
+        <div>
+            <h:link outcome="/user/products" styleClass="btn btn-secondary"
+                    style="margin-top: 1rem;">
+                Przeglądaj produkty jako gość
+            </h:link>
+        </div>
+
+        <div class="features">
+            <div class="feature">
+                <span class="feature-icon">🚀</span>
+                <span>Szybkie i bezpieczne zakupy</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">📦</span>
+                <span>Szeroki asortyment produktów</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">💳</span>
+                <span>Wygodne metody płatności</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">🎯</span>
+                <span>Panel administratora dla zarządzania</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Przekierowanie po 10 sekundach dla użytkowników bez JavaScript -->
+    <noscript>
+        <meta http-equiv="refresh" content="10;url=login.xhtml"/>
+    </noscript>
+
+    <!-- Opcjonalne automatyczne przekierowanie -->
+    <script>
+        // Automatyczne przekierowanie po 30 sekundach nieaktywności
+        setTimeout(function() {
+            if (confirm('Czy chcesz przejść do strony logowania?')) {
+                window.location.href = 'login.xhtml';
+            }
+        }, 30000);
+    </script>
+</h:body>
+</html>

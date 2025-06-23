@@ -22,6 +22,11 @@ public class UserDaoImpl implements UserDaoInterface {
 
     @Override
     public Optional<User> findById(Long id) {
+        if (id == null) {
+            logger.debug("Finding user by id: null - returning empty");
+            return Optional.empty();
+        }
+
         logger.debug("Finding user by id: {}", id);
         try {
             User user = em.find(User.class, id);
@@ -34,11 +39,16 @@ public class UserDaoImpl implements UserDaoInterface {
 
     @Override
     public Optional<User> findByUsername(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            logger.debug("Finding user by username: null/empty - returning empty");
+            return Optional.empty();
+        }
+
         logger.debug("Finding user by username: {}", username);
         try {
             TypedQuery<User> query = em.createQuery(
                     "SELECT u FROM User u WHERE u.username = :username", User.class);
-            query.setParameter("username", username);
+            query.setParameter("username", username.trim());
             return query.getResultStream().findFirst();
         } catch (Exception e) {
             logger.error("Error finding user by username: {}", username, e);
@@ -48,11 +58,16 @@ public class UserDaoImpl implements UserDaoInterface {
 
     @Override
     public Optional<User> findByEmail(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            logger.debug("Finding user by email: null/empty - returning empty");
+            return Optional.empty();
+        }
+
         logger.debug("Finding user by email: {}", email);
         try {
             TypedQuery<User> query = em.createQuery(
                     "SELECT u FROM User u WHERE u.email = :email", User.class);
-            query.setParameter("email", email);
+            query.setParameter("email", email.trim());
             return query.getResultStream().findFirst();
         } catch (Exception e) {
             logger.error("Error finding user by email: {}", email, e);
@@ -75,6 +90,11 @@ public class UserDaoImpl implements UserDaoInterface {
     @Override
     @Transactional
     public void save(User user) {
+        if (user == null) {
+            logger.error("Attempting to save null user");
+            throw new IllegalArgumentException("User cannot be null");
+        }
+
         logger.debug("Saving user: {}", user.getUsername());
         try {
             em.persist(user);
@@ -82,13 +102,18 @@ public class UserDaoImpl implements UserDaoInterface {
             logger.info("User saved successfully: {}", user.getUsername());
         } catch (Exception e) {
             logger.error("Error saving user: {}", user.getUsername(), e);
-            throw new RuntimeException("Failed to save user", e);
+            throw new RuntimeException("Failed to save user: " + e.getMessage(), e);
         }
     }
 
     @Override
     @Transactional
     public void update(User user) {
+        if (user == null) {
+            logger.error("Attempting to update null user");
+            throw new IllegalArgumentException("User cannot be null");
+        }
+
         logger.debug("Updating user: {}", user.getUsername());
         try {
             em.merge(user);
@@ -96,13 +121,18 @@ public class UserDaoImpl implements UserDaoInterface {
             logger.info("User updated successfully: {}", user.getUsername());
         } catch (Exception e) {
             logger.error("Error updating user: {}", user.getUsername(), e);
-            throw new RuntimeException("Failed to update user", e);
+            throw new RuntimeException("Failed to update user: " + e.getMessage(), e);
         }
     }
 
     @Override
     @Transactional
     public void delete(Long id) {
+        if (id == null) {
+            logger.error("Attempting to delete user with null id");
+            throw new IllegalArgumentException("User ID cannot be null");
+        }
+
         logger.debug("Deleting user with id: {}", id);
         try {
             User user = em.find(User.class, id);
@@ -115,18 +145,24 @@ public class UserDaoImpl implements UserDaoInterface {
             }
         } catch (Exception e) {
             logger.error("Error deleting user: {}", id, e);
-            throw new RuntimeException("Failed to delete user", e);
+            throw new RuntimeException("Failed to delete user: " + e.getMessage(), e);
         }
     }
 
     @Override
     public boolean existsByUsername(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            logger.debug("Checking if username exists: null/empty - returning false");
+            return false;
+        }
+
         logger.debug("Checking if username exists: {}", username);
         try {
             TypedQuery<Long> query = em.createQuery(
                     "SELECT COUNT(u) FROM User u WHERE u.username = :username", Long.class);
-            query.setParameter("username", username);
-            return query.getSingleResult() > 0;
+            query.setParameter("username", username.trim());
+            Long count = query.getSingleResult();
+            return count != null && count > 0;
         } catch (Exception e) {
             logger.error("Error checking username existence: {}", username, e);
             return false;
@@ -135,13 +171,18 @@ public class UserDaoImpl implements UserDaoInterface {
 
     @Override
     public boolean existsByEmail(String email) {
-        if (email == null) return false;
+        if (email == null || email.trim().isEmpty()) {
+            logger.debug("Checking if email exists: null/empty - returning false");
+            return false;
+        }
+
         logger.debug("Checking if email exists: {}", email);
         try {
             TypedQuery<Long> query = em.createQuery(
                     "SELECT COUNT(u) FROM User u WHERE u.email = :email", Long.class);
-            query.setParameter("email", email);
-            return query.getSingleResult() > 0;
+            query.setParameter("email", email.trim());
+            Long count = query.getSingleResult();
+            return count != null && count > 0;
         } catch (Exception e) {
             logger.error("Error checking email existence: {}", email, e);
             return false;
