@@ -36,6 +36,9 @@ public class OrderController implements Serializable {
     @Inject
     private AuthServiceInterface authService;
 
+    @Inject
+    private CartController cartController; // Dodane wstrzyknięcie CartController
+
     private String shippingAddress;
     private List<Order> userOrders = new ArrayList<>();
     private List<Order> allOrders = new ArrayList<>();
@@ -130,11 +133,17 @@ public class OrderController implements Serializable {
             // Utwórz zamówienie
             Order order = orderService.createOrderFromCart(currentUser, shippingAddress.trim());
 
+            // WAŻNE: Wyczyść koszyk w CartController po pomyślnym złożeniu zamówienia
+            cartController.clearCartSilently();
+
             // Wyczyść adres dostawy po pomyślnym złożeniu zamówienia
             shippingAddress = null;
 
             // Odśwież listę zamówień
             loadOrders();
+
+            // Wyczyść zapisany adres z localStorage
+            FacesContext.getCurrentInstance().getPartialViewContext().getEvalScripts().add("clearSavedAddress();");
 
             // Przekieruj z komunikatem sukcesu
             addInfoMessage(String.format("Zamówienie zostało złożone pomyślnie! Numer zamówienia: #%d", order.getId()));
@@ -289,8 +298,7 @@ public class OrderController implements Serializable {
         }
 
         if (shippingAddress == null || shippingAddress.trim().length() < 10) {
-            addErrorMessage("Wprowadź pełny adres dostawy (minimum 10 znaków)");
-            return;
+            return; // Nie dodawaj komunikatu - walidacja real-time w JS
         }
 
         // Synchronizuj koszyk i sprawdź dostępność
@@ -309,16 +317,14 @@ public class OrderController implements Serializable {
             }
         }
 
-        addInfoMessage("Zamówienie jest gotowe do złożenia");
+        // Jeśli dotrzemy tutaj, wszystko jest OK - nie dodajemy komunikatu sukcesu
     }
 
     public void prepopulateShippingAddress() {
         User currentUser = authService.getCurrentUser();
         if (currentUser != null && currentUser.getAddress() != null && !currentUser.getAddress().trim().isEmpty()) {
-            if (shippingAddress == null || shippingAddress.trim().isEmpty()) {
-                shippingAddress = currentUser.getAddress();
-                addInfoMessage("Uzupełniono adres dostawy z Twojego profilu");
-            }
+            this.shippingAddress = currentUser.getAddress();
+            addInfoMessage("Uzupełniono adres dostawy z Twojego profilu");
         }
     }
 
@@ -361,6 +367,11 @@ public class OrderController implements Serializable {
 
     public void setSelectedStatus(OrderStatus selectedStatus) {
         this.selectedStatus = selectedStatus;
+    }
+
+    // NOWA METODA - getter dla checkoutValid
+    public boolean getCheckoutValid() {
+        return isCheckoutValid();
     }
 
     private void addInfoMessage(String message) {

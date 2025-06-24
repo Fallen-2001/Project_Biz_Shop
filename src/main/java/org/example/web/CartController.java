@@ -82,7 +82,7 @@ public class CartController implements Serializable {
 
         try {
             cartService.addToCart(productId, 1); // Quantity jest ignorowane w uproszczonym systemie
-            loadCart(); // Odśwież koszyk
+            loadCart(); // Odśwież koszyk IMMEDIATELY po dodaniu
             addInfoMessage("Produkt został dodany do koszyka");
 
             logger.info("Product {} added to cart for user: {}",
@@ -133,6 +133,21 @@ public class CartController implements Serializable {
         this.cartItems.clear();
         loadCart();
         addInfoMessage("Koszyk został odświeżony");
+    }
+
+    // NOWA METODA - wyczyść koszyk bez komunikatu (do użycia po złożeniu zamówienia)
+    public void clearCartSilently() {
+        User currentUser = authService.getCurrentUser();
+        if (currentUser != null) {
+            try {
+                cartService.clearCart(currentUser);
+                this.cartItems.clear();
+                this.cartLoaded = true;
+                logger.info("Cart cleared silently for user: {}", currentUser.getUsername());
+            } catch (Exception e) {
+                logger.error("Error clearing cart silently for user: {}", currentUser.getUsername(), e);
+            }
+        }
     }
 
     public BigDecimal getCartTotal() {

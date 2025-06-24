@@ -144,6 +144,11 @@
             color: #212529;
         }
 
+        .btn-in-cart {
+            background: #17a2b8;
+            color: white;
+        }
+
         .products-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -378,6 +383,24 @@
             padding: 2rem;
             color: #666;
         }
+
+        .success-message {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 5px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
     </style>
 </h:head>
 <h:body>
@@ -388,9 +411,9 @@
             <div class="user-info">
                 <h:panelGroup rendered="#{userController.loggedIn}">
                     <span>Witaj, #{userController.currentUser.fullName}!</span>
-                    <h:link outcome="/user/cart" styleClass="btn btn-warning">
+                    <h:link outcome="/user/cart" styleClass="btn btn-warning" id="cartLink">
                         🛒 Koszyk
-                        <h:panelGroup rendered="#{cartController.cartItemCount > 0}">
+                        <h:panelGroup rendered="#{cartController.cartItemCount > 0}" id="cartBadge">
                             <span class="cart-badge">#{cartController.cartItemCount}</span>
                         </h:panelGroup>
                     </h:link>
@@ -408,7 +431,7 @@
 
     <div class="container">
         <!-- Komunikaty -->
-        <div class="messages">
+        <div class="messages" id="messages">
             <h:messages globalOnly="true"
                         infoClass="alert alert-success"
                         errorClass="alert alert-danger"
@@ -456,7 +479,7 @@
         <!-- Produkty -->
         <h:panelGroup rendered="#{not empty productController.products}">
             <div class="products-grid">
-                <ui:repeat value="#{productController.products}" var="product">
+                <ui:repeat value="#{productController.products}" var="product" varStatus="status">
                     <div class="product-card">
                         <!-- Obrazek produktu -->
                         <div class="product-image">
@@ -502,13 +525,17 @@
                             </div>
 
                             <!-- Akcje -->
-                            <h:form rendered="#{product.stockQuantity gt 0}">
+                            <h:form rendered="#{product.stockQuantity gt 0}" id="productForm_#{status.index}">
                                 <div class="product-actions">
                                     <h:commandButton value="🛒 Dodaj do koszyka"
                                                      action="#{cartController.addToCart(product.id)}"
                                                      styleClass="btn btn-success"
-                                                     style="flex: 1;">
-                                        <f:ajax execute="@this" render="@none" />
+                                                     style="flex: 1;"
+                                                     id="addToCartBtn_#{status.index}"
+                                                     onclick="showAddingState(this)">
+                                        <f:ajax execute="@this"
+                                                render="cartLink cartBadge messages addToCartBtn_#{status.index}"
+                                                oncomplete="showSuccessMessage('#{product.name}'); hideLoadingState();" />
                                     </h:commandButton>
                                 </div>
                             </h:form>
@@ -554,19 +581,50 @@
 
     <script>
         //<![CDATA[
-        /* Aktualizuj wartość quantity przed wysłaniem formularza */
-        document.addEventListener('click', function(e) {
-            if (e.target.matches('input[value*="Do koszyka"]')) {
-                const form = e.target.closest('form');
-                const quantityInput = form.querySelector('input[type="number"]');
-                if (quantityInput) {
-                    /* Można tutaj dodać logikę przekazywania ilości */
-                    console.log('Adding to cart with quantity:', quantityInput.value);
-                }
-            }
-        });
+        function showAddingState(button) {
+            button.innerHTML = '⏳ Dodawanie...';
+            button.disabled = true;
+            button.classList.remove('btn-success');
+            button.classList.add('btn-secondary');
+        }
 
-        /* Auto-refresh co 5 minut */
+        function hideLoadingState() {
+            const buttons = document.querySelectorAll('[id^="productForm"] button');
+            buttons.forEach(button => {
+                if (button.innerHTML.includes('Dodawanie')) {
+                    button.innerHTML = '✅ W koszyku';
+                    button.disabled = true;
+                    button.classList.remove('btn-secondary');
+                    button.classList.add('btn-in-cart');
+
+                    // Po 3 sekundach przywróć oryginalny stan
+                    setTimeout(() => {
+                        button.innerHTML = '🛒 Dodaj do koszyka';
+                        button.disabled = false;
+                        button.classList.remove('btn-in-cart');
+                        button.classList.add('btn-success');
+                    }, 3000);
+                }
+            });
+        }
+
+        function showSuccessMessage(productName) {
+            const message = document.createElement('div');
+            message.className = 'success-message';
+            message.innerHTML = `✅ "${productName}" został dodany do koszyka!`;
+            document.body.appendChild(message);
+
+            setTimeout(() => {
+                message.style.animation = 'slideIn 0.3s ease-out reverse';
+                setTimeout(() => {
+                    if (message.parentNode) {
+                        message.parentNode.removeChild(message);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // Auto-refresh co 5 minut
         setInterval(function() {
             if (document.hidden) return;
             console.log('Auto-refresh check...');
@@ -585,15 +643,6 @@
                     setTimeout(() => alert.remove(), 500);
                 }, 5000);
             });
-        });
-
-        // Obsługa dodawania do koszyka
-        document.addEventListener('click', function(e) {
-            if (e.target.matches('input[value*="Do koszyka"]') ||
-                e.target.matches('button[value*="Do koszyka"]')) {
-                console.log('Adding product to cart...');
-                // Komunikat zostanie pokazany przez JSF
-            }
         });
         //]]>
     </script>

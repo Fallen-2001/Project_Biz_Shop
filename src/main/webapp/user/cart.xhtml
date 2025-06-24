@@ -383,7 +383,6 @@
             pointer-events: none;
         }
 
-
         .quantity-updating::after {
             content: '';
             position: absolute;
@@ -450,141 +449,6 @@
                         rendered="#{not empty facesContext.messageList}"/>
         </div>
 
-        <!-- ULTIMATE DEBUG SECTION - zastąp poprzednią sekcję debug -->
-        <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 1rem; border-radius: 5px; margin-bottom: 1rem;">
-            <h4 style="color: #856404; margin-bottom: 0.5rem;">🐛 Ultimate Debug Info</h4>
-
-            <!-- Podstawowe info -->
-            <div style="margin-bottom: 1rem;">
-                <h5 style="color: #856404; margin-bottom: 0.5rem;">📊 Basic Info</h5>
-                <p style="color: #856404; font-size: 0.9rem; margin: 0.25rem 0;">
-                    <strong>Cart loaded:</strong> #{cartController.cartLoaded}
-                </p>
-                <p style="color: #856404; font-size: 0.9rem; margin: 0.25rem 0;">
-                    <strong>Cart empty:</strong> #{cartController.cartEmpty}
-                </p>
-                <p style="color: #856404; font-size: 0.9rem; margin: 0.25rem 0;">
-                    <strong>User logged in:</strong> #{userController.loggedIn}
-                </p>
-                <p style="color: #856404; font-size: 0.9rem; margin: 0.25rem 0;">
-                    <strong>Current user:</strong> #{userController.currentUser.username}
-                </p>
-            </div>
-
-            <!-- Metody CartController -->
-            <div style="margin-bottom: 1rem;">
-                <h5 style="color: #856404; margin-bottom: 0.5rem;">🔧 CartController Methods</h5>
-                <p style="color: #856404; font-size: 0.9rem; margin: 0.25rem 0;">
-                    <strong>cartItems.size():</strong> #{cartController.cartItems.size()}
-                </p>
-                <p style="color: #856404; font-size: 0.9rem; margin: 0.25rem 0;">
-                    <strong>cartItemsSafe.size():</strong> #{cartController.cartItemsSafe.size()}
-                </p>
-                <p style="color: #856404; font-size: 0.9rem; margin: 0.25rem 0;">
-                    <strong>cartItemCount:</strong> #{cartController.cartItemCount}
-                </p>
-                <p style="color: #856404; font-size: 0.9rem; margin: 0.25rem 0;">
-                    <strong>cartItemsCount:</strong> #{cartController.cartItemsCount}
-                </p>
-                <p style="color: #856404; font-size: 0.9rem; margin: 0.25rem 0;">
-                    <strong>First item debug:</strong> #{cartController.firstItemDebug}
-                </p>
-                <p style="color: #856404; font-size: 0.9rem; margin: 0.25rem 0;">
-                    <strong>Test getCartItems():</strong> #{cartController.testGetCartItems}
-                </p>
-                <p style="color: #856404; font-size: 0.9rem; margin: 0.25rem 0;">
-                    <strong>Service debug info:</strong> #{cartController.serviceDebugInfo}
-                </p>
-                <p style="color: #856404; font-size: 0.9rem; margin: 0.25rem 0;">
-                    <strong>Session debug info:</strong> #{cartController.sessionDebugInfo}
-                </p>
-            </div>
-
-            <!-- Test wyrażeń warunkowych -->
-            <div style="margin-bottom: 1rem;">
-                <h5 style="color: #856404; margin-bottom: 0.5rem;">⚖️ Conditional Tests</h5>
-                <p style="color: #856404; font-size: 0.9rem; margin: 0.25rem 0;">
-                    <strong>cartItems.size() > 0:</strong> #{cartController.cartItems.size() > 0}
-                </p>
-                <p style="color: #856404; font-size: 0.9rem; margin: 0.25rem 0;">
-                    <strong>cartItems.size() == 0:</strong> #{cartController.cartItems.size() == 0}
-                </p>
-                <p style="color: #856404; font-size: 0.9rem; margin: 0.25rem 0;">
-                    <strong>not empty cartItems:</strong> #{not empty cartController.cartItems}
-                </p>
-                <p style="color: #856404; font-size: 0.9rem; margin: 0.25rem 0;">
-                    <strong>empty cartItems:</strong> #{empty cartController.cartItems}
-                </p>
-                <p style="color: #856404; font-size: 0.9rem; margin: 0.25rem 0;">
-                    <strong>cartItems != null:</strong> #{cartController.cartItems != null}
-                </p>
-            </div>
-
-            <!-- Przyciski akcji -->
-            <div style="margin-bottom: 1rem;">
-                <h5 style="color: #856404; margin-bottom: 0.5rem;">🎯 Actions</h5>
-                <h:form style="display: inline-flex; gap: 0.5rem; flex-wrap: wrap;">
-                    <h:commandButton value="🔄 Force Reload"
-                                     action="#{cartController.forceRefreshCart}"
-                                     styleClass="btn btn-warning"
-                                     style="font-size: 0.8rem; padding: 0.25rem 0.5rem;">
-                        <f:ajax execute="@this" render="@all" />
-                    </h:commandButton>
-
-                    <h:commandButton value="📥 Load From Service"
-                                     action="#{cartController.loadCartFromService}"
-                                     styleClass="btn btn-primary"
-                                     style="font-size: 0.8rem; padding: 0.25rem 0.5rem;">
-                        <f:ajax execute="@this" render="@all" />
-                    </h:commandButton>
-                </h:form>
-            </div>
-        </div>
-
-        <!-- TEST SEKCJA - prosta iteracja -->
-        <div style="background: #e7f3ff; border: 1px solid #b3d9ff; padding: 1rem; border-radius: 5px; margin-bottom: 1rem;">
-            <h4 style="color: #0056b3; margin-bottom: 0.5rem;">🧪 Raw Iteration Test</h4>
-            <p style="color: #0056b3; font-size: 0.9rem;">
-                Bezpośrednia iteracja przez cartItems:
-            </p>
-
-            <ol style="color: #0056b3; margin: 0.5rem 0;">
-                <ui:repeat value="#{cartController.cartItems}" var="testItem">
-                    <li style="margin: 0.25rem 0;">
-                        <strong>#{testItem.product.name}</strong> -
-                        <span style="color: #28a745;">#{testItem.product.price} zł</span>
-                        (CartItem ID: #{testItem.id}, Product ID: #{testItem.product.id})
-                    </li>
-                </ui:repeat>
-            </ol>
-
-            <p style="color: #0056b3; font-size: 0.9rem; font-style: italic;">
-                ✅ Jeśli widzisz produkty powyżej = dane są OK, problem w warunkach renderowania głównej sekcji<br/>
-                ❌ Jeśli nie widzisz produktów = problem w CartController lub ładowaniu danych
-            </p>
-        </div>
-
-        <!-- TEST SEKCJA - cartItemsSafe -->
-        <div style="background: #f8d7da; border: 1px solid #f5c6cb; padding: 1rem; border-radius: 5px; margin-bottom: 1rem;">
-            <h4 style="color: #721c24; margin-bottom: 0.5rem;">🛡️ Safe Iteration Test</h4>
-            <p style="color: #721c24; font-size: 0.9rem;">
-                Iteracja przez cartItemsSafe:
-            </p>
-
-            <ol style="color: #721c24; margin: 0.5rem 0;">
-                <ui:repeat value="#{cartController.cartItemsSafe}" var="safeItem">
-                    <li style="margin: 0.25rem 0;">
-                        <strong>#{safeItem.product.name}</strong> -
-                        <span style="color: #dc3545;">#{safeItem.product.price} zł</span>
-                    </li>
-                </ui:repeat>
-            </ol>
-
-            <p style="color: #721c24; font-size: 0.9rem; font-style: italic;">
-                To testuje czy problem jest w null-safety
-            </p>
-        </div>
-
         <!-- Ostrzeżenie o synchronizacji -->
         <h:panelGroup rendered="#{not cartController.canPlaceOrder and not cartController.cartEmpty}">
             <div class="sync-warning">
@@ -612,26 +476,7 @@
                     </div>
 
                     <h:form id="cartForm">
-                        <!-- SPRAWDŹ czy ta sekcja się renderuje -->
-                        <div style="background: #e7f3ff; padding: 1rem; margin-bottom: 1rem; border-radius: 5px;">
-                            <strong>🎯 RENDER TEST:</strong> Ta sekcja się renderuje!<br/>
-                            <strong>Liczba produktów:</strong> #{cartController.cartItems.size()}<br/>
-                            <strong>Pierwszy produkt:</strong>
-                            <h:panelGroup rendered="#{not empty cartController.cartItems}">
-                                #{cartController.cartItems[0].product.name}
-                            </h:panelGroup>
-                        </div>
-
-                        <!-- UŻYJ ui:repeat z dodatkowym debugiem -->
                         <ui:repeat value="#{cartController.cartItems}" var="item" varStatus="status">
-                            <!-- Debug dla każdego elementu -->
-                            <div style="background: #f0f8f0; padding: 0.5rem; margin-bottom: 0.5rem; border-radius: 3px; font-size: 0.8rem;">
-                                <strong>DEBUG Item #{status.index + 1}:</strong>
-                                ID=#{item.id},
-                                Product=#{item.product.name},
-                                Price=#{item.product.price}
-                            </div>
-
                             <div class="cart-item" id="cartItem_#{item.id}">
                                 <!-- Obrazek -->
                                 <div class="item-image">
@@ -698,7 +543,7 @@
                     </h:form>
                 </div>
 
-                <!-- Podsumowanie - TAKŻE zmień warunek -->
+                <!-- Podsumowanie -->
                 <div class="cart-summary">
                     <h3 class="summary-header">📊 Podsumowanie zamówienia</h3>
 
@@ -744,7 +589,6 @@
             </div>
         </h:panelGroup>
 
-        <!-- TAKŻE zmień warunek dla pustego koszyka: -->
         <h:panelGroup rendered="#{empty cartController.cartItems}">
             <div class="empty-cart">
                 <h3>🛒 Twój koszyk jest pusty</h3>
@@ -810,14 +654,6 @@
                 loadingElements.forEach(el => el.classList.remove('quantity-updating'));
             }
         }
-
-        // Potwierdzenie przed opuszczeniem strony z pełnym koszykiem
-        window.addEventListener('beforeunload', function(e) {
-            const cartItems = document.querySelectorAll('.cart-item');
-            if (cartItems.length > 0) {
-                e.returnValue = 'Masz produkty w koszyku. Czy na pewno chcesz opuścić stronę?';
-            }
-        });
 
         // Auto-check co 30 sekund
         setInterval(function() {

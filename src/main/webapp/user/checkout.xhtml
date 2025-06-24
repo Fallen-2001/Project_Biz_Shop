@@ -441,6 +441,7 @@
             padding: 1rem;
             border-radius: 5px;
             text-align: center;
+            transition: all 0.3s ease;
         }
 
         .validation-valid {
@@ -544,7 +545,7 @@
                                     <h:commandButton value="📋 Użyj tego adresu"
                                                      action="#{orderController.prepopulateShippingAddress}"
                                                      styleClass="btn btn-secondary prefill-button">
-                                        <f:ajax execute="@this" render="shippingAddress :messages" />
+                                        <f:ajax execute="@this" render="shippingAddress validationStatus messages" />
                                     </h:commandButton>
                                 </div>
                             </h:panelGroup>
@@ -554,9 +555,16 @@
                                 <h:inputTextarea id="shippingAddress" value="#{orderController.shippingAddress}"
                                                  required="true" requiredMessage="Adres dostawy jest wymagany"
                                                  placeholder="Wprowadź pełny adres dostawy&#10;(ulica, numer, kod pocztowy, miasto)"
-                                                 rows="4">
-                                    <f:ajax event="change" listener="#{orderController.validateCheckout}"
-                                            render="validationStatus :messages" />
+                                                 rows="4"
+                                                 onkeyup="validateAddressRealTime(this.value)"
+                                                 onchange="validateAddressRealTime(this.value)">
+                                    <f:ajax event="keyup"
+                                            listener="#{orderController.validateCheckout}"
+                                            render="validationStatus orderSubmitBtn"
+                                            delay="500" />
+                                    <f:ajax event="change"
+                                            listener="#{orderController.validateCheckout}"
+                                            render="validationStatus orderSubmitBtn" />
                                 </h:inputTextarea>
                                 <div class="help-text">
                                     Przykład: ul. Kwiatowa 15/23, 00-001 Warszawa
@@ -569,7 +577,7 @@
                                     ✅ Zamówienie jest gotowe do złożenia
                                 </h:panelGroup>
                                 <h:panelGroup rendered="#{not orderController.checkoutValid}">
-                                    ⚠️ Sprawdź dane zamówienia
+                                    ⚠️ Sprawdź dane zamówienia - adres musi mieć co najmniej 10 znaków
                                 </h:panelGroup>
                             </div>
 
@@ -677,8 +685,9 @@
                                              styleClass="btn btn-success"
                                              style="font-size: 1.1rem; padding: 1rem 2rem;"
                                              disabled="#{not orderController.checkoutValid}"
+                                             id="orderSubmitBtn"
                                              onclick="return confirmOrderPlacement()">
-                                <f:ajax execute="@form" render="@form :messages" />
+                                <f:ajax execute="@form" render="@form messages" />
                             </h:commandButton>
                         </div>
                     </h:form>
@@ -768,6 +777,30 @@
             });
         });
 
+        /* Real-time walidacja adresu */
+        function validateAddressRealTime(address) {
+            const validationDiv = document.getElementById('validationStatus');
+            const submitBtn = document.getElementById('checkoutForm:orderSubmitBtn');
+
+            if (address && address.trim().length >= 10) {
+                if (validationDiv) {
+                    validationDiv.className = 'validation-status validation-valid';
+                    validationDiv.innerHTML = '✅ Zamówienie jest gotowe do złożenia';
+                }
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                }
+            } else {
+                if (validationDiv) {
+                    validationDiv.className = 'validation-status validation-invalid';
+                    validationDiv.innerHTML = '⚠️ Sprawdź dane zamówienia - adres musi mieć co najmniej 10 znaków';
+                }
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                }
+            }
+        }
+
         /* Walidacja przed wysłaniem */
         function confirmOrderPlacement() {
             const address = document.getElementById('checkoutForm:shippingAddress').value.trim();
@@ -780,14 +813,6 @@
             return confirm('Czy na pewno chcesz złożyć to zamówienie?\n\nPo potwierdzeniu otrzymasz email z detalami zamówienia.');
         }
 
-        /* Ostrzeżenie przed opuszczeniem strony */
-        window.addEventListener('beforeunload', function(e) {
-            const address = document.getElementById('checkoutForm:shippingAddress');
-            if (address && address.value.trim().length > 0) {
-                e.returnValue = 'Czy na pewno chcesz opuścić stronę? Twoje zamówienie nie zostanie złożone.';
-            }
-        });
-
         /* Auto-save adresu w localStorage */
         document.addEventListener('DOMContentLoaded', function() {
             const addressField = document.getElementById('checkoutForm:shippingAddress');
@@ -797,6 +822,7 @@
                     const savedAddress = localStorage.getItem('checkout_address');
                     if (savedAddress && !addressField.value) {
                         addressField.value = savedAddress;
+                        validateAddressRealTime(savedAddress);
                     }
                 } catch (e) {
                     console.log('Cannot read from localStorage');
@@ -810,6 +836,9 @@
                         console.log('Cannot save to localStorage');
                     }
                 });
+
+                // Waliduj przy załadowaniu
+                validateAddressRealTime(addressField.value);
             }
         });
 
@@ -821,23 +850,6 @@
                 console.log('Cannot clear localStorage');
             }
         }
-
-        /* Real-time walidacja adresu */
-        document.addEventListener('DOMContentLoaded', function() {
-            const addressField = document.getElementById('checkoutForm:shippingAddress');
-            if (addressField) {
-                addressField.addEventListener('input', function() {
-                    const length = this.value.trim().length;
-                    const validationStatus = document.getElementById('validationStatus');
-
-                    if (length >= 10) {
-                        this.style.borderColor = '#28a745';
-                    } else {
-                        this.style.borderColor = '#dc3545';
-                    }
-                });
-            }
-        });
         //]]>
     </script>
 </h:body>
