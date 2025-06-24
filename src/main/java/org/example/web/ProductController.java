@@ -62,17 +62,51 @@ public class ProductController {
     }
 
     public String addToCart(Product product) {
-        return addToCart(product.getId(), selectedQuantity != null ? selectedQuantity : 1);
+        return addToCart(product.getId());
     }
 
     public String addToCart(Long productId) {
-        return addToCart(productId, 1);
-    }
+        if (!authService.isLoggedIn()) {
+            addErrorMessage("Musisz być zalogowany, aby dodać produkt do koszyka");
+            return "/login.xhtml?faces-redirect=true";
+        }
 
-    // Nowa metoda używająca selectedQuantity
-    public String addToCartWithQuantity(Long productId) {
-        Integer quantity = selectedQuantity != null ? selectedQuantity : 1;
-        return addToCart(productId, quantity);
+        try {
+            // Znajdź produkt żeby sprawdzić jego dostępność
+            Optional<Product> productOpt = productService.getProductById(productId);
+            if (productOpt.isEmpty()) {
+                addErrorMessage("Produkt nie został znaleziony");
+                return null;
+            }
+
+            Product product = productOpt.get();
+            selectedProduct = product;
+
+            // Sprawdź dostępność
+            if (!product.isActive()) {
+                addErrorMessage("Produkt nie jest dostępny");
+                return null;
+            }
+
+            if (product.getStockQuantity() == null || product.getStockQuantity() == 0) {
+                addErrorMessage("Produkt jest wyprzedany");
+                return null;
+            }
+
+            cartService.addToCart(productId, 1); // Zawsze 1 sztuka
+
+            String message = String.format("Produkt '%s' został dodany do koszyka", product.getName());
+            addInfoMessage(message);
+
+            logger.info("Product {} added to cart for user: {}",
+                    productId, authService.getCurrentUser().getUsername());
+
+        } catch (Exception e) {
+            logger.error("Error adding product {} to cart", productId, e);
+            addErrorMessage("Błąd podczas dodawania produktu do koszyka: " + e.getMessage());
+        }
+
+        return null; // Pozostań na tej samej stronie
     }
 
     public String addToCart(Long productId, Integer quantity) {

@@ -55,13 +55,13 @@ public class CartService implements CartServiceInterface {
             throw new Exception("Musisz być zalogowany, aby dodać produkt do koszyka");
         }
 
-        addToCart(currentUser, productId, quantity);
+        addToCart(currentUser, productId, 1); // Zawsze dodajemy 1 sztukę
     }
 
     @Override
     @Transactional
     public void addToCart(User user, Long productId, Integer quantity) throws Exception {
-        logger.debug("Adding product {} to cart for user: {} with quantity: {}", productId, user.getUsername(), quantity);
+        logger.debug("Adding product {} to cart for user: {}", productId, user.getUsername());
 
         // Walidacja podstawowa
         if (user == null) {
@@ -70,14 +70,6 @@ public class CartService implements CartServiceInterface {
 
         if (productId == null) {
             throw new Exception("ID produktu nie może być null");
-        }
-
-        if (quantity == null || quantity <= 0) {
-            throw new Exception("Ilość musi być większa od 0");
-        }
-
-        if (quantity > 100) {
-            throw new Exception("Nie można dodać więcej niż 100 sztuk jednocześnie");
         }
 
         // Sprawdź czy produkt istnieje
@@ -95,132 +87,27 @@ public class CartService implements CartServiceInterface {
             throw new Exception("Produkt nie jest dostępny");
         }
 
-        // Szczegółowe sprawdzenie dostępności
-        if (product.getStockQuantity() == null) {
-            logger.error("Product {} has null stock quantity", productId);
-            throw new Exception("Błąd systemu: brak informacji o stanie magazynowym produktu");
-        }
-
-        if (product.getStockQuantity() == 0) {
+        // Sprawdź dostępność
+        if (product.getStockQuantity() == null || product.getStockQuantity() <= 0) {
             logger.warn("Attempt to add out-of-stock product {} to cart", productId);
-            throw new Exception("Produkt jest obecnie niedostępny (wyprzedany)");
+            throw new Exception("Produkt jest obecnie niedostępny");
         }
 
-        // Sprawdź czy istnieje już element w koszyku
+        // Sprawdź czy produkt już jest w koszyku
         Optional<CartItem> existingItemOpt = cartDao.findByUserAndProduct(user, product);
 
         if (existingItemOpt.isPresent()) {
-            // Aktualizuj istniejący element koszyka
-            CartItem existingItem = existingItemOpt.get();
-            int currentQuantityInCart = existingItem.getQuantity();
-            int newTotalQuantity = currentQuantityInCart + quantity;
-
-            logger.debug("Product {} already in cart with quantity {}, adding {}",
-                    productId, currentQuantityInCart, quantity);
-
-            // Sprawdź dostępność dla nowej łącznej ilości
-            if (!product.isAvailable(newTotalQuantity)) {
-                String message = String.format(
-                        "Niewystarczająca ilość w magazynie. Dostępne: %d, w koszyku: %d, próbowano dodać: %d",
-                        product.getStockQuantity(), currentQuantityInCart, quantity);
-                logger.warn("Insufficient stock for product {}: {}", productId, message);
-                throw new Exception(message);
-            }
-
-            // Sprawdź maksymalną dozwoloną ilość (10 sztuk)
-            if (newTotalQuantity > 10) {
-                throw new Exception("Maksymalna ilość jednego produktu w koszyku to 10 sztuk");
-            }
-
-            existingItem.setQuantity(newTotalQuantity);
-            cartDao.updateAndRefresh(existingItem);
-            logger.info("Updated cart item quantity for user {} and product {}: {} -> {}",
-                    user.getUsername(), productId, currentQuantityInCart, newTotalQuantity);
-
+            // Jeśli produkt już jest w koszyku, nie dodawaj ponownie
+            throw new Exception("Produkt już znajduje się w koszyku");
         } else {
-            // Dodaj nowy element do koszyka
-            logger.debug("Adding new cart item for product {} with quantity {}", productId, quantity);
+            // Dodaj nowy element do koszyka z ilością = 1
+            logger.debug("Adding new cart item for product {} with quantity 1", productId);
 
-            // Sprawdź dostępność dla nowego elementu
-            if (!product.isAvailable(quantity)) {
-                String message = String.format(
-                        "Niewystarczająca ilość w magazynie. Dostępne: %d, żądane: %d",
-                        product.getStockQuantity(), quantity);
-                logger.warn("Insufficient stock for new cart item {}: {}", productId, message);
-                throw new Exception(message);
-            }
-
-            // Sprawdź maksymalną dozwoloną ilość
-            if (quantity > 10) {
-                throw new Exception("Maksymalna ilość jednego produktu w koszyku to 10 sztuk");
-            }
-
-            CartItem newItem = new CartItem(user, product, quantity);
+            CartItem newItem = new CartItem(user, product, 1);
             cartDao.save(newItem);
-            logger.info("Added new cart item for user {} and product {} with quantity {}",
-                    user.getUsername(), productId, quantity);
+            logger.info("Added new cart item for user {} and product {} with quantity 1",
+                    user.getUsername(), productId);
         }
-    }
-
-    @Override
-    @Transactional
-    public void updateCartItemQuantity(Long cartItemId, Integer newQuantity) throws Exception {
-        User currentUser = authService.getCurrentUser();
-        if (currentUser == null) {
-            throw new Exception("Musisz być zalogowany");
-        }
-
-        logger.debug("Updating cart item {} quantity to {}", cartItemId, newQuantity);
-
-        if (cartItemId == null) {
-            throw new Exception("ID elementu koszyka nie może być null");
-        }
-
-        if (newQuantity == null || newQuantity < 0) {
-            throw new Exception("Nieprawidłowa ilość");
-        }
-
-        if (newQuantity == 0) {
-            removeFromCart(cartItemId);
-            return;
-        }
-
-        if (newQuantity > 100) {
-            throw new Exception("Maksymalna ilość to 100 sztuk");
-        }
-
-        // Znajdź element koszyka i sprawdź czy należy do użytkownika
-        Optional<CartItem> cartItemOpt = cartDao.findByIdAndUser(cartItemId, currentUser);
-
-        if (cartItemOpt.isEmpty()) {
-            throw new Exception("Element koszyka nie został znaleziony lub nie należy do Ciebie");
-        }
-
-        CartItem cartItem = cartItemOpt.get();
-        Product product = cartItem.getProduct();
-
-        // Sprawdź dostępność produktu
-        if (!product.isActive()) {
-            throw new Exception("Produkt nie jest już dostępny");
-        }
-
-        if (product.getStockQuantity() == null || !product.isAvailable(newQuantity)) {
-            String message = String.format(
-                    "Niewystarczająca ilość w magazynie. Dostępne: %d, żądane: %d",
-                    product.getStockQuantity() != null ? product.getStockQuantity() : 0, newQuantity);
-            throw new Exception(message);
-        }
-
-        // Sprawdź maksymalną dozwoloną ilość
-        if (newQuantity > 10) {
-            throw new Exception("Maksymalna ilość jednego produktu w koszyku to 10 sztuk");
-        }
-
-        Integer oldQuantity = cartItem.getQuantity();
-        cartItem.setQuantity(newQuantity);
-        cartDao.updateAndRefresh(cartItem);
-
-        logger.info("Updated cart item {} quantity from {} to {}", cartItemId, oldQuantity, newQuantity);
     }
 
     @Override
@@ -275,7 +162,7 @@ public class CartService implements CartServiceInterface {
         try {
             List<CartItem> cartItems = getCartItems(user);
             return cartItems.stream()
-                    .map(CartItem::getSubtotal)
+                    .map(item -> item.getProduct().getPrice()) // Każdy produkt to 1 sztuka
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
         } catch (Exception e) {
             logger.error("Error calculating cart total for user: {}", user.getUsername(), e);
@@ -290,6 +177,7 @@ public class CartService implements CartServiceInterface {
         }
 
         try {
+            // Liczba produktów = liczba pozycji (każda po 1 sztuce)
             return cartDao.countByUser(user);
         } catch (Exception e) {
             logger.error("Error getting cart item count for user: {}", user.getUsername(), e);

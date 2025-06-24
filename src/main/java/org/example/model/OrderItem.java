@@ -52,7 +52,7 @@ public class OrderItem {
     public void setPrice(BigDecimal price) { this.price = price; }
 
     public BigDecimal getSubtotal() {
-        return price.multiply(BigDecimal.valueOf(quantity));
+        return product.getPrice();
     }
 
     @Override

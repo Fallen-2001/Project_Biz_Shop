@@ -99,7 +99,7 @@
             padding: 1.5rem;
             border-bottom: 1px solid #e9ecef;
             display: grid;
-            grid-template-columns: 80px 1fr auto auto auto;
+            grid-template-columns: 80px 1fr auto auto;
             gap: 1rem;
             align-items: center;
         }
@@ -157,28 +157,7 @@
             font-size: 1.2rem;
             font-weight: bold;
             color: #28a745;
-        }
-
-        .quantity-controls {
-            display: flex;
-            align-items: center;
-            border: 2px solid #ced4da;
-            border-radius: 8px;
-            overflow: hidden;
-            background: white;
-        }
-
-        .quantity-controls button {
-            background: #f8f9fa;
-            border: none;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            font-weight: bold;
+            text-align: center;
         }
 
         .quantity-controls button:hover:not(:disabled) {
@@ -188,15 +167,6 @@
         .quantity-controls button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-        }
-
-        .quantity-controls input {
-            border: none;
-            width: 60px;
-            text-align: center;
-            height: 40px;
-            background: white;
-            font-weight: bold;
         }
 
         .quantity-controls input:focus {
@@ -413,9 +383,6 @@
             pointer-events: none;
         }
 
-        .quantity-updating {
-            position: relative;
-        }
 
         .quantity-updating::after {
             content: '';
@@ -429,11 +396,6 @@
             border-top: 2px solid #667eea;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
         }
 
         .cart-actions-bar {
@@ -488,6 +450,141 @@
                         rendered="#{not empty facesContext.messageList}"/>
         </div>
 
+        <!-- ULTIMATE DEBUG SECTION - zastąp poprzednią sekcję debug -->
+        <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 1rem; border-radius: 5px; margin-bottom: 1rem;">
+            <h4 style="color: #856404; margin-bottom: 0.5rem;">🐛 Ultimate Debug Info</h4>
+
+            <!-- Podstawowe info -->
+            <div style="margin-bottom: 1rem;">
+                <h5 style="color: #856404; margin-bottom: 0.5rem;">📊 Basic Info</h5>
+                <p style="color: #856404; font-size: 0.9rem; margin: 0.25rem 0;">
+                    <strong>Cart loaded:</strong> #{cartController.cartLoaded}
+                </p>
+                <p style="color: #856404; font-size: 0.9rem; margin: 0.25rem 0;">
+                    <strong>Cart empty:</strong> #{cartController.cartEmpty}
+                </p>
+                <p style="color: #856404; font-size: 0.9rem; margin: 0.25rem 0;">
+                    <strong>User logged in:</strong> #{userController.loggedIn}
+                </p>
+                <p style="color: #856404; font-size: 0.9rem; margin: 0.25rem 0;">
+                    <strong>Current user:</strong> #{userController.currentUser.username}
+                </p>
+            </div>
+
+            <!-- Metody CartController -->
+            <div style="margin-bottom: 1rem;">
+                <h5 style="color: #856404; margin-bottom: 0.5rem;">🔧 CartController Methods</h5>
+                <p style="color: #856404; font-size: 0.9rem; margin: 0.25rem 0;">
+                    <strong>cartItems.size():</strong> #{cartController.cartItems.size()}
+                </p>
+                <p style="color: #856404; font-size: 0.9rem; margin: 0.25rem 0;">
+                    <strong>cartItemsSafe.size():</strong> #{cartController.cartItemsSafe.size()}
+                </p>
+                <p style="color: #856404; font-size: 0.9rem; margin: 0.25rem 0;">
+                    <strong>cartItemCount:</strong> #{cartController.cartItemCount}
+                </p>
+                <p style="color: #856404; font-size: 0.9rem; margin: 0.25rem 0;">
+                    <strong>cartItemsCount:</strong> #{cartController.cartItemsCount}
+                </p>
+                <p style="color: #856404; font-size: 0.9rem; margin: 0.25rem 0;">
+                    <strong>First item debug:</strong> #{cartController.firstItemDebug}
+                </p>
+                <p style="color: #856404; font-size: 0.9rem; margin: 0.25rem 0;">
+                    <strong>Test getCartItems():</strong> #{cartController.testGetCartItems}
+                </p>
+                <p style="color: #856404; font-size: 0.9rem; margin: 0.25rem 0;">
+                    <strong>Service debug info:</strong> #{cartController.serviceDebugInfo}
+                </p>
+                <p style="color: #856404; font-size: 0.9rem; margin: 0.25rem 0;">
+                    <strong>Session debug info:</strong> #{cartController.sessionDebugInfo}
+                </p>
+            </div>
+
+            <!-- Test wyrażeń warunkowych -->
+            <div style="margin-bottom: 1rem;">
+                <h5 style="color: #856404; margin-bottom: 0.5rem;">⚖️ Conditional Tests</h5>
+                <p style="color: #856404; font-size: 0.9rem; margin: 0.25rem 0;">
+                    <strong>cartItems.size() > 0:</strong> #{cartController.cartItems.size() > 0}
+                </p>
+                <p style="color: #856404; font-size: 0.9rem; margin: 0.25rem 0;">
+                    <strong>cartItems.size() == 0:</strong> #{cartController.cartItems.size() == 0}
+                </p>
+                <p style="color: #856404; font-size: 0.9rem; margin: 0.25rem 0;">
+                    <strong>not empty cartItems:</strong> #{not empty cartController.cartItems}
+                </p>
+                <p style="color: #856404; font-size: 0.9rem; margin: 0.25rem 0;">
+                    <strong>empty cartItems:</strong> #{empty cartController.cartItems}
+                </p>
+                <p style="color: #856404; font-size: 0.9rem; margin: 0.25rem 0;">
+                    <strong>cartItems != null:</strong> #{cartController.cartItems != null}
+                </p>
+            </div>
+
+            <!-- Przyciski akcji -->
+            <div style="margin-bottom: 1rem;">
+                <h5 style="color: #856404; margin-bottom: 0.5rem;">🎯 Actions</h5>
+                <h:form style="display: inline-flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <h:commandButton value="🔄 Force Reload"
+                                     action="#{cartController.forceRefreshCart}"
+                                     styleClass="btn btn-warning"
+                                     style="font-size: 0.8rem; padding: 0.25rem 0.5rem;">
+                        <f:ajax execute="@this" render="@all" />
+                    </h:commandButton>
+
+                    <h:commandButton value="📥 Load From Service"
+                                     action="#{cartController.loadCartFromService}"
+                                     styleClass="btn btn-primary"
+                                     style="font-size: 0.8rem; padding: 0.25rem 0.5rem;">
+                        <f:ajax execute="@this" render="@all" />
+                    </h:commandButton>
+                </h:form>
+            </div>
+        </div>
+
+        <!-- TEST SEKCJA - prosta iteracja -->
+        <div style="background: #e7f3ff; border: 1px solid #b3d9ff; padding: 1rem; border-radius: 5px; margin-bottom: 1rem;">
+            <h4 style="color: #0056b3; margin-bottom: 0.5rem;">🧪 Raw Iteration Test</h4>
+            <p style="color: #0056b3; font-size: 0.9rem;">
+                Bezpośrednia iteracja przez cartItems:
+            </p>
+
+            <ol style="color: #0056b3; margin: 0.5rem 0;">
+                <ui:repeat value="#{cartController.cartItems}" var="testItem">
+                    <li style="margin: 0.25rem 0;">
+                        <strong>#{testItem.product.name}</strong> -
+                        <span style="color: #28a745;">#{testItem.product.price} zł</span>
+                        (CartItem ID: #{testItem.id}, Product ID: #{testItem.product.id})
+                    </li>
+                </ui:repeat>
+            </ol>
+
+            <p style="color: #0056b3; font-size: 0.9rem; font-style: italic;">
+                ✅ Jeśli widzisz produkty powyżej = dane są OK, problem w warunkach renderowania głównej sekcji<br/>
+                ❌ Jeśli nie widzisz produktów = problem w CartController lub ładowaniu danych
+            </p>
+        </div>
+
+        <!-- TEST SEKCJA - cartItemsSafe -->
+        <div style="background: #f8d7da; border: 1px solid #f5c6cb; padding: 1rem; border-radius: 5px; margin-bottom: 1rem;">
+            <h4 style="color: #721c24; margin-bottom: 0.5rem;">🛡️ Safe Iteration Test</h4>
+            <p style="color: #721c24; font-size: 0.9rem;">
+                Iteracja przez cartItemsSafe:
+            </p>
+
+            <ol style="color: #721c24; margin: 0.5rem 0;">
+                <ui:repeat value="#{cartController.cartItemsSafe}" var="safeItem">
+                    <li style="margin: 0.25rem 0;">
+                        <strong>#{safeItem.product.name}</strong> -
+                        <span style="color: #dc3545;">#{safeItem.product.price} zł</span>
+                    </li>
+                </ui:repeat>
+            </ol>
+
+            <p style="color: #721c24; font-size: 0.9rem; font-style: italic;">
+                To testuje czy problem jest w null-safety
+            </p>
+        </div>
+
         <!-- Ostrzeżenie o synchronizacji -->
         <h:panelGroup rendered="#{not cartController.canPlaceOrder and not cartController.cartEmpty}">
             <div class="sync-warning">
@@ -506,16 +603,17 @@
         </h:panelGroup>
 
         <!-- Koszyk -->
-        <h:panelGroup rendered="#{not cartController.cartEmpty}">
+        <h:panelGroup rendered="#{cartController.cartItems.size() > 0}">
             <div class="cart-container">
                 <!-- Lista produktów -->
                 <div class="cart-items">
                     <div class="cart-header">
-                        <h3>Produkty w koszyku (#{cartController.cartItemsCount})</h3>
+                        <h3>Produkty w koszyku (#{cartController.cartItems.size()})</h3>
                     </div>
 
                     <h:form id="cartForm">
-                        <ui:repeat value="#{cartController.cartItems}" var="item" varStatus="status">
+                        <!-- UŻYJ ui:repeat zamiast innych iteratorów -->
+                        <ui:repeat value="#{cartController.cartItems}" var="item">
                             <div class="cart-item" id="cartItem_#{item.id}">
                                 <!-- Obrazek -->
                                 <div class="item-image">
@@ -534,59 +632,18 @@
                                     <div class="item-category">#{item.product.category}</div>
 
                                     <!-- Status dostępności -->
-                                    <div class="item-availability #{cartController.getStockStatusClass(item)}">
-                                        #{cartController.getStockStatus(item)}
+                                    <div class="item-availability #{item.product.stockQuantity gt 0 ? 'available' : 'unavailable'}">
+                                        <h:outputText value="✅ Dostępny" rendered="#{item.product.stockQuantity gt 0}" />
+                                        <h:outputText value="❌ Niedostępny" rendered="#{item.product.stockQuantity eq 0}" />
                                     </div>
                                 </div>
 
-                                <!-- Cena jednostkowa -->
+                                <!-- Cena (zawsze 1 sztuka) -->
                                 <div class="item-price">
                                     <h:outputText value="#{item.product.price}">
                                         <f:convertNumber pattern="#,##0.00 zł" />
                                     </h:outputText>
-                                </div>
-
-                                <!-- Kontrola ilości z AJAX -->
-                                <div class="quantity-controls" id="quantityControls_#{item.id}">
-                                    <h:commandButton value="−"
-                                                     action="#{cartController.updateQuantity(item.id, item.quantity - 1)}"
-                                                     disabled="#{item.quantity le 1}"
-                                                     styleClass="quantity-btn"
-                                                     id="decreaseBtn_#{item.id}">
-                                        <f:ajax execute="@this"
-                                                render=":cartForm:cartItem_#{item.id} :cartForm:cartSummary :messages" />
-                                    </h:commandButton>
-
-                                    <h:inputText value="#{item.quantity}"
-                                                 styleClass="quantity-input"
-                                                 size="3"
-                                                 min="1"
-                                                 max="#{cartController.getMaxQuantityForItem(item)}"
-                                                 id="quantityInput_#{item.id}">
-                                        <f:convertNumber integerOnly="true" />
-                                        <f:ajax event="change"
-                                                listener="#{cartController.updateQuantityAjax}"
-                                                render=":cartForm:cartItem_#{item.id} :cartForm:cartSummary :messages">
-                                            <f:attribute name="itemId" value="#{item.id}" />
-                                            <f:attribute name="newQuantity" value="#{item.quantity}" />
-                                        </f:ajax>
-                                    </h:inputText>
-
-                                    <h:commandButton value="+"
-                                                     action="#{cartController.updateQuantity(item.id, item.quantity + 1)}"
-                                                     disabled="#{item.quantity ge cartController.getMaxQuantityForItem(item)}"
-                                                     styleClass="quantity-btn"
-                                                     id="increaseBtn_#{item.id}">
-                                        <f:ajax execute="@this"
-                                                render=":cartForm:cartItem_#{item.id} :cartForm:cartSummary :messages" />
-                                    </h:commandButton>
-                                </div>
-
-                                <!-- Suma za pozycję -->
-                                <div class="item-total">
-                                    <h:outputText value="#{item.subtotal}">
-                                        <f:convertNumber pattern="#,##0.00 zł" />
-                                    </h:outputText>
+                                    <div style="font-size: 0.8rem; color: #666;">1 sztuka</div>
                                 </div>
 
                                 <!-- Akcje -->
@@ -595,7 +652,7 @@
                                                      action="#{cartController.removeFromCart(item.id)}"
                                                      styleClass="btn btn-danger"
                                                      onclick="return confirm('Czy na pewno usunąć ten produkt z koszyka?')">
-                                        <f:ajax execute="@this" render="@form :messages" />
+                                        <f:ajax execute="@this" render="@form" />
                                     </h:commandButton>
                                 </div>
                             </div>
@@ -607,7 +664,7 @@
                                 <h:commandButton value="🔄 Odśwież koszyk"
                                                  action="#{cartController.forceRefreshCart}"
                                                  styleClass="btn btn-secondary">
-                                    <f:ajax execute="@this" render="@form :messages" />
+                                    <f:ajax execute="@this" render="@form" />
                                 </h:commandButton>
                             </div>
 
@@ -616,34 +673,29 @@
                                                  action="#{cartController.clearCart}"
                                                  styleClass="btn btn-danger"
                                                  onclick="return confirm('Czy na pewno wyczyścić cały koszyk?')">
-                                    <f:ajax execute="@this" render="@form :messages" />
+                                    <f:ajax execute="@this" render="@form" />
                                 </h:commandButton>
                             </div>
                         </div>
                     </h:form>
                 </div>
 
-                <!-- Podsumowanie -->
-                <div class="cart-summary" id="cartSummary">
+                <!-- Podsumowanie - zawsze pokaż jeśli są produkty -->
+                <div class="cart-summary">
                     <h3 class="summary-header">📊 Podsumowanie zamówienia</h3>
 
                     <div class="summary-row">
                         <span>Liczba produktów:</span>
-                        <span>#{cartController.cartItemsCount}</span>
-                    </div>
-
-                    <div class="summary-row">
-                        <span>Łączna ilość:</span>
-                        <span>#{cartController.cartItemCount} szt.</span>
+                        <span>#{cartController.cartItems.size()}</span>
                     </div>
 
                     <div class="summary-row">
                         <span>Wartość produktów:</span>
                         <span>
-                            <h:outputText value="#{cartController.cartTotal}">
-                                <f:convertNumber pattern="#,##0.00 zł" />
-                            </h:outputText>
-                        </span>
+                    <h:outputText value="#{cartController.cartTotal}">
+                        <f:convertNumber pattern="#,##0.00 zł" />
+                    </h:outputText>
+                </span>
                     </div>
 
                     <div class="summary-row">
@@ -654,51 +706,28 @@
                     <div class="summary-row total">
                         <span>Do zapłaty:</span>
                         <span>
-                            <h:outputText value="#{cartController.cartTotal}">
-                                <f:convertNumber pattern="#,##0.00 zł" />
-                            </h:outputText>
-                        </span>
+                    <h:outputText value="#{cartController.cartTotal}">
+                        <f:convertNumber pattern="#,##0.00 zł" />
+                    </h:outputText>
+                </span>
                     </div>
 
                     <div class="checkout-actions">
-                        <h:panelGroup rendered="#{cartController.canPlaceOrder}">
-                            <h:link outcome="/user/checkout" styleClass="btn btn-success"
-                                    style="text-align: center; font-size: 1.1rem; padding: 1rem;">
-                                💳 Przejdź do płatności
-                            </h:link>
-                        </h:panelGroup>
-
-                        <h:panelGroup rendered="#{not cartController.canPlaceOrder}">
-                            <button class="btn btn-secondary" disabled="disabled"
-                                    style="text-align: center; font-size: 1.1rem; padding: 1rem;">
-                                ⚠️ Sprawdź dostępność
-                            </button>
-                            <p style="color: #856404; font-size: 0.9rem; text-align: center; margin: 0.5rem 0;">
-                                Niektóre produkty są niedostępne
-                            </p>
-                        </h:panelGroup>
+                        <h:link outcome="/user/checkout" styleClass="btn btn-success"
+                                style="text-align: center; font-size: 1.1rem; padding: 1rem;">
+                            💳 Przejdź do płatności
+                        </h:link>
 
                         <h:link outcome="/user/products" styleClass="btn btn-primary">
                             🛒 Kontynuuj zakupy
                         </h:link>
                     </div>
-
-                    <!-- Informacje dodatkowe -->
-                    <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e9ecef;">
-                        <h4 style="color: #333; margin-bottom: 1rem;">ℹ️ Informacje</h4>
-                        <ul style="color: #666; font-size: 0.9rem; line-height: 1.6;">
-                            <li>🚚 Bezpłatna dostawa przy zamówieniach powyżej 0 zł</li>
-                            <li>📦 Realizacja zamówienia: 1-3 dni robocze</li>
-                            <li>↩️ Zwrot produktu: do 14 dni</li>
-                            <li>💳 Płatność przy odbiorze lub online</li>
-                        </ul>
-                    </div>
                 </div>
             </div>
         </h:panelGroup>
 
-        <!-- Pusty koszyk -->
-        <h:panelGroup rendered="#{cartController.cartEmpty}">
+        <!-- Pusty koszyk - pokaż tylko gdy NIE MA produktów -->
+        <h:panelGroup rendered="#{cartController.cartItems.size() == 0}">
             <div class="empty-cart">
                 <h3>🛒 Twój koszyk jest pusty</h3>
                 <p>Dodaj produkty do koszyka, aby móc złożyć zamówienie.</p>
@@ -772,7 +801,7 @@
             }
         });
 
-        // Auto-save co 30 sekund
+        // Auto-check co 30 sekund
         setInterval(function() {
             if (document.hidden) return;
             console.log('Auto-checking cart state...');
@@ -780,11 +809,6 @@
 
         // Inicjalizacja po załadowaniu strony
         document.addEventListener('DOMContentLoaded', function() {
-            // Dodaj obsługę AJAX do istniejących elementów
-            if (typeof jsf !== 'undefined') {
-                jsf.ajax.addOnEvent(handleQuantityAjax);
-            }
-
             // Automatyczne ukrywanie komunikatów po 5 sekundach
             const alerts = document.querySelectorAll('.alert');
             alerts.forEach(alert => {
@@ -794,11 +818,13 @@
                     setTimeout(() => alert.remove(), 500);
                 }, 5000);
             });
+
+            console.log('Cart page loaded, debug info available');
         });
 
         // Funkcja odświeżania koszyka
         function refreshCart() {
-            const refreshBtn = document.querySelector('input[value*="Odśwież"]');
+            const refreshBtn = document.querySelector('input[value*="Force Reload"]');
             if (refreshBtn) {
                 refreshBtn.click();
             }

@@ -503,23 +503,13 @@
 
                             <!-- Akcje -->
                             <h:form rendered="#{product.stockQuantity gt 0}">
-                                <!-- Selektor ilości -->
-                                <div class="quantity-selector">
-                                    <label for="quantity_#{product.id}" style="margin-right: 0.5rem; font-weight: 500;">Ilość:</label>
-                                    <button type="button" onclick="decreaseQuantity('#{product.id}')"
-                                            style="border-radius: 5px 0 0 5px;">−</button>
-                                    <input type="number" id="quantity_#{product.id}" value="1" min="1"
-                                           max="#{product.stockQuantity gt 10 ? 10 : product.stockQuantity}"/>
-                                    <button type="button" onclick="increaseQuantity('#{product.id}')"
-                                            style="border-radius: 0 5px 5px 0;">+</button>
-                                </div>
-
                                 <div class="product-actions">
-                                    <h:commandButton value="🛒 Do koszyka"
-                                                     action="#{cartController.addToCart(product.id, 1)}"
+                                    <h:commandButton value="🛒 Dodaj do koszyka"
+                                                     action="#{cartController.addToCart(product.id)}"
                                                      styleClass="btn btn-success"
-                                                     style="flex: 1;"
-                                                     onclick="this.form.elements['quantity_#{product.id}'].value"/>
+                                                     style="flex: 1;">
+                                        <f:ajax execute="@this" render="@none" />
+                                    </h:commandButton>
                                 </div>
                             </h:form>
 
@@ -564,23 +554,6 @@
 
     <script>
         //<![CDATA[
-        function increaseQuantity(productId) {
-            const input = document.getElementById('quantity_' + productId);
-            const max = parseInt(input.getAttribute('max'));
-            const current = parseInt(input.value);
-            if (current < max) {
-                input.value = current + 1;
-            }
-        }
-
-        function decreaseQuantity(productId) {
-            const input = document.getElementById('quantity_' + productId);
-            const current = parseInt(input.value);
-            if (current > 1) {
-                input.value = current - 1;
-            }
-        }
-
         /* Aktualizuj wartość quantity przed wysłaniem formularza */
         document.addEventListener('click', function(e) {
             if (e.target.matches('input[value*="Do koszyka"]')) {
@@ -598,6 +571,30 @@
             if (document.hidden) return;
             console.log('Auto-refresh check...');
         }, 300000);
+
+        // Inicjalizacja po załadowaniu strony
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Products page loaded');
+
+            // Automatyczne ukrywanie komunikatów po 5 sekundach
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.style.transition = 'opacity 0.5s';
+                    alert.style.opacity = '0';
+                    setTimeout(() => alert.remove(), 500);
+                }, 5000);
+            });
+        });
+
+        // Obsługa dodawania do koszyka
+        document.addEventListener('click', function(e) {
+            if (e.target.matches('input[value*="Do koszyka"]') ||
+                e.target.matches('button[value*="Do koszyka"]')) {
+                console.log('Adding product to cart...');
+                // Komunikat zostanie pokazany przez JSF
+            }
+        });
         //]]>
     </script>
 </h:body>
