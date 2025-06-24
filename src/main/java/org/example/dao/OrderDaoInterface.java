@@ -14,4 +14,40 @@ public interface OrderDaoInterface {
     void save(Order order);
     void update(Order order);
     void delete(Long id);
+
+    // NOWE METODY
+    /**
+     * Wymusza zapis zmian do bazy danych
+     */
+    void flush();
+
+    /**
+     * Pobiera zamówienia użytkownika z eager loading pozycji
+     */
+    List<Order> findByUserWithItems(User user);
+
+    /**
+     * Pobiera wszystkie zamówienia z eager loading pozycji
+     */
+    List<Order> findAllWithItems();
+
+    /**
+     * Pobiera zamówienie po ID z eager loading pozycji
+     */
+    Optional<Order> findByIdWithItems(Long id);
+
+    /**
+     * Sprawdza czy użytkownik ma zamówienia
+     */
+    boolean hasOrders(User user);
+
+    /**
+     * Liczy zamówienia użytkownika
+     */
+    long countByUser(User user);
+
+    /**
+     * Pobiera ostatnie N zamówień użytkownika
+     */
+    List<Order> findRecentByUser(User user, int limit);
 }

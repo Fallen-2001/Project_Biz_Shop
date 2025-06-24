@@ -1,7 +1,7 @@
 package org.example.web;
 
 import jakarta.annotation.PostConstruct;
-import jakarta.enterprise.context.SessionScoped;
+import jakarta.enterprise.context.RequestScoped;
 import jakarta.faces.application.FacesMessage;
 import jakarta.faces.context.FacesContext;
 import jakarta.inject.Inject;
@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Named
-@SessionScoped
+@RequestScoped  // Zmienione z @SessionScoped na @RequestScoped
 public class OrderController implements Serializable {
 
     private static final Logger logger = LoggerFactory.getLogger(OrderController.class);
@@ -37,7 +37,7 @@ public class OrderController implements Serializable {
     private AuthServiceInterface authService;
 
     @Inject
-    private CartController cartController; // Dodane wstrzyknięcie CartController
+    private CartController cartController;
 
     private String shippingAddress;
     private List<Order> userOrders = new ArrayList<>();
@@ -47,25 +47,42 @@ public class OrderController implements Serializable {
 
     @PostConstruct
     public void init() {
+        logger.debug("OrderController initialized - loading orders");
         loadOrders();
     }
 
     public void loadOrders() {
         User currentUser = authService.getCurrentUser();
+        logger.debug("Loading orders for user: {}", currentUser != null ? currentUser.getUsername() : "null");
+
         if (currentUser != null) {
             try {
+                // Zawsze pobierz świeże dane z bazy
                 userOrders = orderService.getUserOrders(currentUser);
+                logger.info("Loaded {} orders for user: {}", userOrders.size(), currentUser.getUsername());
+
+                // Log szczegółów zamówień dla debugowania
+                for (Order order : userOrders) {
+                    logger.debug("Order: ID={}, Date={}, Status={}, Total={}",
+                            order.getId(), order.getOrderDate(), order.getStatus(), order.getTotalAmount());
+                }
 
                 // Załaduj wszystkie zamówienia dla admina
                 if (currentUser.getRole() == Role.ADMIN) {
                     allOrders = orderService.getAllOrders();
+                    logger.debug("Loaded {} total orders for admin", allOrders.size());
                 }
 
-                logger.debug("Orders loaded for user: {}", currentUser.getUsername());
             } catch (Exception e) {
                 logger.error("Error loading orders for user: {}", currentUser.getUsername(), e);
-                addErrorMessage("Błąd podczas ładowania zamówień");
+                addErrorMessage("Błąd podczas ładowania zamówień: " + e.getMessage());
+                userOrders = new ArrayList<>();
+                allOrders = new ArrayList<>();
             }
+        } else {
+            logger.debug("No current user - clearing orders lists");
+            userOrders = new ArrayList<>();
+            allOrders = new ArrayList<>();
         }
     }
 
@@ -139,7 +156,7 @@ public class OrderController implements Serializable {
             // Wyczyść adres dostawy po pomyślnym złożeniu zamówienia
             shippingAddress = null;
 
-            // Odśwież listę zamówień
+            // WAŻNE: Odśwież listę zamówień po dodaniu nowego
             loadOrders();
 
             // Wyczyść zapisany adres z localStorage
@@ -338,6 +355,11 @@ public class OrderController implements Serializable {
     }
 
     public List<Order> getUserOrders() {
+        // Zawsze odśwież dane przed zwróceniem
+        if (userOrders == null || userOrders.isEmpty()) {
+            loadOrders();
+        }
+        logger.debug("Returning {} user orders", userOrders != null ? userOrders.size() : 0);
         return userOrders;
     }
 
@@ -372,6 +394,13 @@ public class OrderController implements Serializable {
     // NOWA METODA - getter dla checkoutValid
     public boolean getCheckoutValid() {
         return isCheckoutValid();
+    }
+
+    // NOWA METODA - wymusza odświeżenie zamówień
+    public void refreshOrders() {
+        logger.info("Manually refreshing orders list");
+        loadOrders();
+        addInfoMessage("Lista zamówień została odświeżona");
     }
 
     private void addInfoMessage(String message) {
