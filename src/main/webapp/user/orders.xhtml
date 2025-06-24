@@ -4,7 +4,7 @@
       xmlns:f="http://xmlns.jcp.org/jsf/core"
       xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
 <h:head>
-    <title>Moje zamówienia - Sklep Online</title>
+    <title>Historia zamówień - Sklep Online</title>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <style>
@@ -53,24 +53,6 @@
             padding: 2rem 1rem;
         }
 
-        .page-header {
-            background: white;
-            padding: 2rem;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            margin-bottom: 2rem;
-            text-align: center;
-        }
-
-        .page-header h1 {
-            color: #333;
-            margin-bottom: 0.5rem;
-        }
-
-        .page-header p {
-            color: #666;
-        }
-
         .breadcrumb {
             background: white;
             padding: 1rem 2rem;
@@ -88,6 +70,24 @@
         .breadcrumb span {
             color: #666;
             margin-right: 0.5rem;
+        }
+
+        .page-header {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .page-header h1 {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-header p {
+            color: #666;
         }
 
         .orders-container {
@@ -121,6 +121,7 @@
         .order-number {
             font-weight: bold;
             color: #333;
+            font-size: 1.1rem;
         }
 
         .order-date {
@@ -148,8 +149,33 @@
             color: #28a745;
         }
 
-        .order-items {
+        .order-details {
             padding: 1.5rem;
+        }
+
+        .order-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-section h4 {
+            color: #333;
+            margin-bottom: 0.75rem;
+            font-size: 1rem;
+            border-bottom: 1px solid #e9ecef;
+            padding-bottom: 0.25rem;
+        }
+
+        .info-content {
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .order-items {
+            margin-top: 2rem;
         }
 
         .order-items-header {
@@ -211,6 +237,7 @@
         .item-price {
             font-weight: bold;
             color: #333;
+            text-align: center;
         }
 
         .item-total {
@@ -271,32 +298,6 @@
             color: #212529;
         }
 
-        .order-summary-info {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            background: #f8f9fa;
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-        }
-
-        .summary-item {
-            text-align: center;
-        }
-
-        .summary-value {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .summary-label {
-            color: #666;
-            font-size: 0.85rem;
-            margin-top: 0.25rem;
-        }
-
         .empty-orders {
             background: white;
             border-radius: 15px;
@@ -343,24 +344,6 @@
             color: #0c5460;
         }
 
-        .shipping-info {
-            background: #e7f3ff;
-            border: 1px solid #b3d9ff;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-top: 1rem;
-        }
-
-        .shipping-info h5 {
-            color: #0056b3;
-            margin-bottom: 0.5rem;
-        }
-
-        .shipping-address {
-            color: #0056b3;
-            font-size: 0.9rem;
-        }
-
         @media (max-width: 768px) {
             .order-header {
                 grid-template-columns: 1fr;
@@ -386,76 +369,30 @@
                 align-items: stretch;
             }
 
-            .order-summary-info {
+            .order-info-grid {
                 grid-template-columns: 1fr;
+                gap: 1rem;
             }
         }
 
-        .tracking-info {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
+        .order-summary {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
             border-radius: 8px;
             padding: 1rem;
-            margin-top: 1rem;
+            margin-bottom: 1rem;
         }
 
-        .tracking-info h5 {
-            color: #856404;
-            margin-bottom: 0.5rem;
-        }
-
-        .order-progress {
+        .summary-row {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin: 1rem 0;
-        }
-
-        .progress-step {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            flex: 1;
-        }
-
-        .progress-step.completed .progress-icon {
-            background: #28a745;
-            color: white;
-        }
-
-        .progress-step.active .progress-icon {
-            background: #667eea;
-            color: white;
-        }
-
-        .progress-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #e9ecef;
-            color: #666;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
             margin-bottom: 0.5rem;
         }
 
-        .progress-label {
-            font-size: 0.8rem;
-            text-align: center;
-        }
-
-        .progress-line {
-            height: 2px;
-            background: #e9ecef;
-            flex: 1;
-            margin: 0 0.5rem;
-            margin-top: -20px;
-        }
-
-        .progress-line.completed {
-            background: #28a745;
+        .summary-row:last-child {
+            margin-bottom: 0;
+            font-weight: bold;
+            color: #0056b3;
         }
     </style>
 </h:head>
@@ -465,9 +402,11 @@
         <div class="header-content">
             <div class="logo">🛍️ Sklep Online</div>
             <div class="user-info">
-                <span>Witaj, #{userController.currentUser.fullName}!</span>
-                <h:link outcome="/user/products" styleClass="btn btn-secondary">🛒 Kontynuuj zakupy</h:link>
-                <h:link outcome="/user/cart" styleClass="btn btn-warning">🛒 Koszyk</h:link>
+                <h:panelGroup rendered="#{userController.loggedIn}">
+                    <span>Witaj, #{userController.currentUser.fullName}!</span>
+                    <h:link outcome="/user/products" styleClass="btn btn-secondary">🛒 Kontynuuj zakupy</h:link>
+                    <h:link outcome="/user/cart" styleClass="btn btn-warning">🛒 Koszyk</h:link>
+                </h:panelGroup>
             </div>
         </div>
     </div>
@@ -477,13 +416,13 @@
         <div class="breadcrumb">
             <h:link outcome="/user/products" value="🛒 Produkty" />
             <span>›</span>
-            <span>Moje zamówienia</span>
+            <span>Historia zamówień</span>
         </div>
 
         <!-- Header strony -->
         <div class="page-header">
-            <h1>📦 Moje zamówienia</h1>
-            <p>Historia wszystkich Twoich zamówień i ich statusy</p>
+            <h1>📦 Historia zamówień</h1>
+            <p>Wszystkie Twoje zamówienia w jednym miejscu</p>
         </div>
 
         <!-- Komunikaty -->
@@ -495,205 +434,221 @@
                         rendered="#{not empty facesContext.messageList}"/>
         </div>
 
-        <!-- Lista zamówień -->
-        <h:panelGroup rendered="#{not empty orderController.userOrders}">
-            <div class="orders-container">
-                <ui:repeat value="#{orderController.userOrders}" var="order">
-                    <div class="order-card">
-                        <!-- Nagłówek zamówienia -->
-                        <div class="order-header">
-                            <div>
-                                <div class="order-number">Zamówienie ##{order.id}</div>
-                                <div class="order-date">
-                                    <h:outputText value="#{order.orderDate}">
+        <!-- Sprawdzenie czy użytkownik jest zalogowany -->
+        <h:panelGroup rendered="#{not userController.loggedIn}">
+            <div style="background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 2rem; border-radius: 10px; text-align: center;">
+                <h3>🔒 Wymagane logowanie</h3>
+                <p>Aby zobaczyć swoje zamówienia, musisz się zalogować.</p>
+                <h:link outcome="/login" styleClass="btn btn-primary" style="margin-top: 1rem;">
+                    🔑 Zaloguj się
+                </h:link>
+            </div>
+        </h:panelGroup>
+
+        <!-- Lista zamówień dla zalogowanych użytkowników -->
+        <h:panelGroup rendered="#{userController.loggedIn}">
+            <!-- Są zamówienia -->
+            <h:panelGroup rendered="#{not empty orderController.userOrders}">
+                <div class="orders-container">
+                    <ui:repeat value="#{orderController.userOrders}" var="order">
+                        <div class="order-card">
+                            <!-- Nagłówek zamówienia -->
+                            <div class="order-header">
+                                <div>
+                                    <div class="order-number">🧾 Zamówienie ##{order.id}</div>
+                                    <div class="order-date">
+                                        📅 <h:outputText value="#{order.orderDate}">
                                         <f:convertDateTime pattern="dd.MM.yyyy HH:mm" />
+                                    </h:outputText>
+                                    </div>
+                                </div>
+
+                                <div></div> <!-- Spacer -->
+
+                                <div class="order-status status-confirmed">
+                                    ✅ Potwierdzone
+                                </div>
+
+                                <div class="order-total">
+                                    <h:outputText value="#{order.totalAmount}">
+                                        <f:convertNumber pattern="#,##0.00 zł" />
                                     </h:outputText>
                                 </div>
                             </div>
 
-                            <div></div> <!-- Spacer -->
-
-                            <div class="order-status #{orderController.getOrderStatusStyle(order.status).replace('background-color:', 'status-').replace(';', '').replace(' color:', '').replace('#856404', 'pending').replace('#155724', 'confirmed').replace('#0c5460', 'shipped').replace('#0f5132', 'delivered').replace('#721c24', 'cancelled')}">
-                                #{order.status.displayName}
-                            </div>
-
-                            <div class="order-total">
-                                <h:outputText value="#{order.totalAmount}">
-                                    <f:convertNumber pattern="#,##0.00 zł" />
-                                </h:outputText>
-                            </div>
-                        </div>
-
-                        <!-- Informacje o dostawie -->
-                        <h:panelGroup rendered="#{not empty order.shippingAddress}">
-                            <div class="shipping-info">
-                                <h5>📍 Adres dostawy:</h5>
-                                <div class="shipping-address">#{order.shippingAddress}</div>
-                            </div>
-                        </h:panelGroup>
-
-                        <!-- Progres zamówienia -->
-                        <div class="order-progress">
-                            <div class="progress-step #{order.status.ordinal() >= 0 ? 'completed' : ''}">
-                                <div class="progress-icon">📝</div>
-                                <div class="progress-label">Złożone</div>
-                            </div>
-                            <div class="progress-line #{order.status.ordinal() >= 1 ? 'completed' : ''}"></div>
-
-                            <div class="progress-step #{order.status.ordinal() >= 1 ? 'completed' : (order.status.ordinal() == 0 ? 'active' : '')}">
-                                <div class="progress-icon">✅</div>
-                                <div class="progress-label">Potwierdzone</div>
-                            </div>
-                            <div class="progress-line #{order.status.ordinal() >= 2 ? 'completed' : ''}"></div>
-
-                            <div class="progress-step #{order.status.ordinal() >= 2 ? 'completed' : (order.status.ordinal() == 1 ? 'active' : '')}">
-                                <div class="progress-icon">🚛</div>
-                                <div class="progress-label">Wysłane</div>
-                            </div>
-                            <div class="progress-line #{order.status.ordinal() >= 3 ? 'completed' : ''}"></div>
-
-                            <div class="progress-step #{order.status.ordinal() >= 3 ? 'completed' : (order.status.ordinal() == 2 ? 'active' : '')}">
-                                <div class="progress-icon">📦</div>
-                                <div class="progress-label">Dostarczone</div>
-                            </div>
-                        </div>
-
-                        <!-- Produkty w zamówieniu -->
-                        <div class="order-items">
-                            <h4 class="order-items-header">🛒 Produkty (#{order.orderItems.size()})</h4>
-
-                            <ui:repeat value="#{order.orderItems}" var="item">
-                                <div class="order-item">
-                                    <!-- Obrazek produktu -->
-                                    <div class="item-image">
-                                        <h:panelGroup rendered="#{not empty item.product.imageUrl}">
-                                            <img src="#{item.product.imageUrl}" alt="#{item.product.name}"
-                                                 onerror="this.style.display='none'; this.parentNode.innerHTML='📦'"/>
-                                        </h:panelGroup>
-                                        <h:panelGroup rendered="#{empty item.product.imageUrl}">
-                                            📦
-                                        </h:panelGroup>
+                            <!-- Szczegóły zamówienia -->
+                            <div class="order-details">
+                                <!-- Informacje ogólne -->
+                                <div class="order-info-grid">
+                                    <div class="info-section">
+                                        <h4>📍 Adres dostawy</h4>
+                                        <div class="info-content">
+                                            #{order.shippingAddress}
+                                        </div>
                                     </div>
 
-                                    <!-- Szczegóły produktu -->
-                                    <div class="item-details">
-                                        <h4>#{item.product.name}</h4>
-                                        <div class="item-category">#{item.product.category}</div>
-                                        <div class="item-quantity">Ilość: #{item.quantity} szt.</div>
-                                    </div>
-
-                                    <!-- Cena jednostkowa -->
-                                    <div class="item-price">
-                                        <h:outputText value="#{item.price}">
-                                            <f:convertNumber pattern="#,##0.00 zł" />
-                                        </h:outputText>
-                                        <div style="font-size: 0.8rem; color: #666;">za sztukę</div>
-                                    </div>
-
-                                    <!-- Suma za pozycję -->
-                                    <div class="item-total">
-                                        <h:outputText value="#{item.subtotal}">
-                                            <f:convertNumber pattern="#,##0.00 zł" />
-                                        </h:outputText>
+                                    <div class="info-section">
+                                        <h4>📊 Podsumowanie</h4>
+                                        <div class="order-summary">
+                                            <div class="summary-row">
+                                                <span>Liczba produktów:</span>
+                                                <span>#{order.orderItems.size()}</span>
+                                            </div>
+                                            <div class="summary-row">
+                                                <span>Wartość zamówienia:</span>
+                                                <span>
+                                                    <h:outputText value="#{order.totalAmount}">
+                                                        <f:convertNumber pattern="#,##0.00 zł" />
+                                                    </h:outputText>
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </ui:repeat>
-                        </div>
 
-                        <!-- Akcje dla zamówienia -->
-                        <div class="order-actions">
-                            <div>
-                                <h:panelGroup rendered="#{order.status.name() == 'SHIPPED'}">
-                                    <div class="tracking-info">
-                                        <h5>📍 Śledzenie przesyłki</h5>
-                                        <p style="margin: 0; color: #856404;">
-                                            Twoja przesyłka jest w drodze. Oczekiwany czas dostawy: 1-2 dni robocze.
-                                        </p>
-                                    </div>
-                                </h:panelGroup>
+                                <!-- Produkty w zamówieniu -->
+                                <div class="order-items">
+                                    <h4 class="order-items-header">🛒 Zamówione produkty</h4>
+
+                                    <ui:repeat value="#{order.orderItems}" var="item">
+                                        <div class="order-item">
+                                            <!-- Obrazek produktu -->
+                                            <div class="item-image">
+                                                <h:panelGroup rendered="#{not empty item.product.imageUrl}">
+                                                    <img src="#{item.product.imageUrl}" alt="#{item.product.name}"
+                                                         onerror="this.style.display='none'; this.parentNode.innerHTML='📦'"/>
+                                                </h:panelGroup>
+                                                <h:panelGroup rendered="#{empty item.product.imageUrl}">
+                                                    📦
+                                                </h:panelGroup>
+                                            </div>
+
+                                            <!-- Szczegóły produktu -->
+                                            <div class="item-details">
+                                                <h4>#{item.product.name}</h4>
+                                                <div class="item-category">#{item.product.category}</div>
+                                                <div class="item-quantity">Ilość: #{item.quantity} szt.</div>
+                                            </div>
+
+                                            <!-- Cena jednostkowa -->
+                                            <div class="item-price">
+                                                <h:outputText value="#{item.price}">
+                                                    <f:convertNumber pattern="#,##0.00 zł" />
+                                                </h:outputText>
+                                                <div style="font-size: 0.8rem; color: #666;">za sztukę</div>
+                                            </div>
+
+                                            <!-- Suma za pozycję -->
+                                            <div class="item-total">
+                                                <h:outputText value="#{item.subtotal}">
+                                                    <f:convertNumber pattern="#,##0.00 zł" />
+                                                </h:outputText>
+                                            </div>
+                                        </div>
+                                    </ui:repeat>
+                                </div>
                             </div>
 
-                            <div style="display: flex; gap: 0.5rem;">
-                                <!-- Anuluj zamówienie -->
-                                <h:panelGroup rendered="#{orderController.canCancelOrder(order)}">
-                                    <h:form style="display: inline;">
-                                        <h:commandButton value="❌ Anuluj zamówienie"
-                                                         action="#{orderController.cancelOrder(order.id)}"
-                                                         styleClass="btn btn-danger"
-                                                         onclick="return confirm('Czy na pewno chcesz anulować to zamówienie?')"/>
-                                    </h:form>
-                                </h:panelGroup>
+                            <!-- Akcje dla zamówienia -->
+                            <div class="order-actions">
+                                <div>
+                                    <span style="color: #666; font-size: 0.9rem;">
+                                        💡 Masz pytania? Skontaktuj się z obsługą klienta
+                                    </span>
+                                </div>
 
-                                <!-- Zamów ponownie -->
-                                <h:panelGroup rendered="#{order.status.name() == 'DELIVERED'}">
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <!-- Anuluj zamówienie -->
+                                    <h:panelGroup rendered="#{orderController.canCancelOrder(order)}">
+                                        <h:form style="display: inline;">
+                                            <h:commandButton value="❌ Anuluj zamówienie"
+                                                             action="#{orderController.cancelOrder(order.id)}"
+                                                             styleClass="btn btn-danger"
+                                                             onclick="return confirm('Czy na pewno chcesz anulować to zamówienie? Stan magazynowy zostanie przywrócony.')"/>
+                                        </h:form>
+                                    </h:panelGroup>
+
+                                    <!-- Informacja o anulowanym zamówieniu -->
+                                    <h:panelGroup rendered="#{order.status.name() == 'CANCELLED'}">
+                                        <span style="color: #721c24; font-weight: bold;">❌ Zamówienie anulowane</span>
+                                    </h:panelGroup>
+
+                                    <!-- Zamów ponownie -->
                                     <button class="btn btn-success"
-                                            onclick="alert('Funkcja zamówienia ponownego będzie dostępna wkrótce!')">
+                                            onclick="alert('Funkcja zamawiania ponownego będzie dostępna wkrótce!')">
                                         🔄 Zamów ponownie
                                     </button>
-                                </h:panelGroup>
 
-                                <!-- Pobierz fakturę -->
-                                <button class="btn btn-primary"
-                                        onclick="alert('Funkcja pobierania faktury będzie dostępna wkrótce!')">
-                                    📄 Pobierz fakturę
-                                </button>
+                                    <!-- Kontakt -->
+                                    <button class="btn btn-primary"
+                                            onclick="alert('Obsługa klienta: sklep@example.com lub tel. 123-456-789')">
+                                        📞 Kontakt
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </ui:repeat>
-            </div>
-        </h:panelGroup>
+                    </ui:repeat>
+                </div>
+            </h:panelGroup>
 
-        <!-- Brak zamówień -->
-        <h:panelGroup rendered="#{empty orderController.userOrders}">
-            <div class="empty-orders">
-                <h3>📦 Nie masz jeszcze żadnych zamówień</h3>
-                <p>Czas zacząć zakupy! Przeglądaj nasze produkty i złóż pierwsze zamówienie.</p>
-                <h:link outcome="/user/products" styleClass="btn btn-primary"
-                        style="font-size: 1.1rem; padding: 1rem 2rem;">
-                    🛒 Zacznij zakupy
-                </h:link>
-            </div>
+            <!-- Brak zamówień -->
+            <h:panelGroup rendered="#{empty orderController.userOrders}">
+                <div class="empty-orders">
+                    <h3>📦 Nie masz jeszcze żadnych zamówień</h3>
+                    <p>Czas zacząć zakupy! Przeglądaj nasze produkty i złóż pierwsze zamówienie.</p>
+                    <h:link outcome="/user/products" styleClass="btn btn-primary"
+                            style="font-size: 1.1rem; padding: 1rem 2rem;">
+                        🛒 Zacznij zakupy
+                    </h:link>
+                </div>
+            </h:panelGroup>
         </h:panelGroup>
     </div>
 
     <script>
         //<![CDATA[
-        /* Auto-refresh co 2 minuty dla aktywnych zamówień */
-        setInterval(function() {
-            if (document.hidden) return;
-
-            const activeOrders = document.querySelectorAll('.status-pending, .status-confirmed, .status-shipped');
-            if (activeOrders.length > 0) {
-                console.log('Checking for order updates...');
-                /* Tutaj można dodać AJAX call do sprawdzenia statusów */
-            }
-        }, 120000);
-
-        /* Powiadomienia o zmianach statusu */
+        /* Automatyczne ukrywanie komunikatów po 5 sekundach */
         document.addEventListener('DOMContentLoaded', function() {
-            /* Sprawdź czy są nowe aktualizacje statusu */
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('updated') === 'true') {
-                const orderCard = document.querySelector('.order-card');
-                if (orderCard) {
-                    orderCard.style.border = '2px solid #28a745';
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.style.transition = 'opacity 0.5s';
+                    alert.style.opacity = '0';
                     setTimeout(() => {
-                        orderCard.style.border = '';
-                    }, 3000);
+                        if (alert.parentNode) {
+                            alert.parentNode.removeChild(alert);
+                        }
+                    }, 500);
+                }, 5000);
+            });
+
+            /* Podświetl nowo dodane zamówienie */
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('orderPlaced') === 'true') {
+                const firstOrderCard = document.querySelector('.order-card');
+                if (firstOrderCard) {
+                    firstOrderCard.style.border = '2px solid #28a745';
+                    firstOrderCard.style.animation = 'pulse 2s infinite';
+                    setTimeout(() => {
+                        firstOrderCard.style.border = '';
+                        firstOrderCard.style.animation = '';
+                    }, 5000);
                 }
             }
+
+            console.log('Orders page loaded successfully');
         });
 
-        /* Obsługa śledzenia przesyłki */
-        function trackPackage(orderId) {
-            alert('Funkcja śledzenia przesyłki dla zamówienia #' + orderId + ' będzie dostępna wkrótce!');
-        }
-
-        /* Eksport zamówień do PDF */
-        function exportOrders() {
-            alert('Funkcja eksportu zamówień będzie dostępna wkrótce!');
-        }
+        /* Animacja pulsowania */
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse {
+                0% { box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+                50% { box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3); }
+                100% { box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+            }
+        `;
+        document.head.appendChild(style);
         //]]>
     </script>
 </h:body>

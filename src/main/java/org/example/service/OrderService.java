@@ -66,7 +66,7 @@ public class OrderService {
         // Utwórz zamówienie
         Order order = new Order(user, shippingAddress.trim());
         order.setOrderDate(LocalDateTime.now());
-        order.setStatus(OrderStatus.PENDING);
+        order.setStatus(OrderStatus.CONFIRMED); // Proste - zamówienie od razu potwierdzone
 
         // Dodaj pozycje zamówienia
         for (CartItem cartItem : cartItems) {
@@ -110,42 +110,8 @@ public class OrderService {
         return orderDao.findAll();
     }
 
-    public List<Order> getOrdersByStatus(OrderStatus status) {
-        logger.debug("Getting orders by status: {}", status);
-        return orderDao.findByStatus(status);
-    }
-
     public Optional<Order> getOrderById(Long orderId) {
         return orderDao.findById(orderId);
-    }
-
-    @Transactional
-    public void updateOrderStatus(Long orderId, OrderStatus newStatus) throws Exception {
-        User currentUser = authService.getCurrentUser();
-        if (currentUser == null || currentUser.getRole() != Role.ADMIN) {
-            throw new Exception("Tylko administrator może zmieniać status zamówienia");
-        }
-
-        logger.debug("Updating order {} status to {}", orderId, newStatus);
-
-        Optional<Order> orderOpt = orderDao.findById(orderId);
-        if (orderOpt.isEmpty()) {
-            throw new Exception("Zamówienie nie zostało znalezione");
-        }
-
-        Order order = orderOpt.get();
-        OrderStatus oldStatus = order.getStatus();
-        order.setStatus(newStatus);
-        orderDao.update(order);
-
-        logger.info("Order {} status updated from {} to {}", orderId, oldStatus, newStatus);
-
-        // Wyślij email o zmianie statusu
-        try {
-            emailService.sendOrderStatusUpdate(order, oldStatus, newStatus);
-        } catch (Exception e) {
-            logger.warn("Failed to send order status update email for order: {}", orderId, e);
-        }
     }
 
     @Transactional
@@ -162,16 +128,12 @@ public class OrderService {
 
         Order order = orderOpt.get();
 
-        // Sprawdź uprawnienia
-        if (currentUser.getRole() != Role.ADMIN && !order.getUser().getId().equals(currentUser.getId())) {
+        // Sprawdź uprawnienia - tylko właściciel zamówienia może anulować
+        if (!order.getUser().getId().equals(currentUser.getId()) && currentUser.getRole() != Role.ADMIN) {
             throw new Exception("Nie masz uprawnień do anulowania tego zamówienia");
         }
 
         // Sprawdź czy można anulować
-        if (order.getStatus() == OrderStatus.SHIPPED || order.getStatus() == OrderStatus.DELIVERED) {
-            throw new Exception("Nie można anulować zamówienia, które zostało już wysłane");
-        }
-
         if (order.getStatus() == OrderStatus.CANCELLED) {
             throw new Exception("Zamówienie już zostało anulowane");
         }
@@ -185,28 +147,27 @@ public class OrderService {
             productDao.update(product);
         }
 
-        OrderStatus oldStatus = order.getStatus();
         order.setStatus(OrderStatus.CANCELLED);
         orderDao.update(order);
 
         logger.info("Order {} cancelled by user: {}", orderId, currentUser.getUsername());
-
-        // Wyślij email o anulowaniu
-        try {
-            emailService.sendOrderCancellation(order);
-        } catch (Exception e) {
-            logger.warn("Failed to send order cancellation email for order: {}", orderId, e);
-        }
     }
 
+    // Uproszczone statystyki
     public BigDecimal getTotalRevenue() {
-        List<Order> completedOrders = orderDao.findByStatus(OrderStatus.DELIVERED);
-        return completedOrders.stream()
+        return orderDao.findAll().stream()
+                .filter(order -> order.getStatus() != OrderStatus.CANCELLED)
                 .map(Order::getTotalAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    public long getPendingOrdersCount() {
-        return orderDao.findByStatus(OrderStatus.PENDING).size();
+    public long getTotalOrdersCount() {
+        return orderDao.findAll().size();
+    }
+
+    public long getCompletedOrdersCount() {
+        return orderDao.findAll().stream()
+                .filter(order -> order.getStatus() != OrderStatus.CANCELLED)
+                .count();
     }
 }

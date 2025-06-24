@@ -51,8 +51,22 @@ public class OrderItem {
     public BigDecimal getPrice() { return price; }
     public void setPrice(BigDecimal price) { this.price = price; }
 
+    /**
+     * Oblicza subtotal dla tej pozycji zamówienia
+     * @return cena * ilość
+     */
     public BigDecimal getSubtotal() {
-        return product.getPrice();
+        if (price == null || quantity == null) {
+            return BigDecimal.ZERO;
+        }
+        return price.multiply(BigDecimal.valueOf(quantity));
+    }
+
+    /**
+     * Alias dla getSubtotal() - dla kompatybilności
+     */
+    public BigDecimal getTotal() {
+        return getSubtotal();
     }
 
     @Override
@@ -66,5 +80,11 @@ public class OrderItem {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("OrderItem{id=%d, product='%s', quantity=%d, price=%s}",
+                id, product != null ? product.getName() : "null", quantity, price);
     }
 }

@@ -37,35 +37,42 @@ public class OrderController implements Serializable {
     private AuthServiceInterface authService;
 
     @Inject
-    private CartController cartController; // Dodane wstrzyknięcie CartController
+    private CartController cartController;
 
     private String shippingAddress;
     private List<Order> userOrders = new ArrayList<>();
-    private List<Order> allOrders = new ArrayList<>();
-    private Order selectedOrder;
-    private OrderStatus selectedStatus;
 
     @PostConstruct
     public void init() {
+        logger.debug("OrderController initialized");
         loadOrders();
     }
 
     public void loadOrders() {
         User currentUser = authService.getCurrentUser();
+        logger.debug("Loading orders for user: {}", currentUser != null ? currentUser.getUsername() : "null");
+
         if (currentUser != null) {
             try {
                 userOrders = orderService.getUserOrders(currentUser);
+                logger.info("Loaded {} orders for user: {}", userOrders.size(), currentUser.getUsername());
 
-                // Załaduj wszystkie zamówienia dla admina
-                if (currentUser.getRole() == Role.ADMIN) {
-                    allOrders = orderService.getAllOrders();
+                // Debug: sprawdź czy zamówienia mają pozycje
+                for (Order order : userOrders) {
+                    logger.debug("Order {}: {} items, total: {}",
+                            order.getId(),
+                            order.getOrderItems() != null ? order.getOrderItems().size() : "null",
+                            order.getTotalAmount());
                 }
 
-                logger.debug("Orders loaded for user: {}", currentUser.getUsername());
             } catch (Exception e) {
                 logger.error("Error loading orders for user: {}", currentUser.getUsername(), e);
-                addErrorMessage("Błąd podczas ładowania zamówień");
+                addErrorMessage("Błąd podczas ładowania zamówień: " + e.getMessage());
+                userOrders = new ArrayList<>();
             }
+        } else {
+            logger.debug("No current user, clearing orders");
+            userOrders = new ArrayList<>();
         }
     }
 
@@ -112,28 +119,13 @@ public class OrderController implements Serializable {
                 addErrorMessage("Nie można złożyć zamówienia. Niektóre produkty są niedostępne.");
                 return "/user/cart.xhtml?faces-redirect=true";
             }
-
-            // Sprawdź czy są niedostępne produkty
-            List<org.example.model.CartItem> unavailableItems = cs.getUnavailableCartItems(currentUser);
-            if (!unavailableItems.isEmpty()) {
-                StringBuilder message = new StringBuilder("Następujące produkty są niedostępne: ");
-                for (org.example.model.CartItem item : unavailableItems) {
-                    message.append(item.getProduct().getName()).append(", ");
-                }
-                // Usuń ostatni przecinek
-                if (message.length() > 2) {
-                    message.setLength(message.length() - 2);
-                }
-                addErrorMessage(message.toString());
-                return "/user/cart.xhtml?faces-redirect=true";
-            }
         }
 
         try {
             // Utwórz zamówienie
             Order order = orderService.createOrderFromCart(currentUser, shippingAddress.trim());
 
-            // WAŻNE: Wyczyść koszyk w CartController po pomyślnym złożeniu zamówienia
+            // Wyczyść koszyk w CartController po pomyślnym złożeniu zamówienia
             cartController.clearCartSilently();
 
             // Wyczyść adres dostawy po pomyślnym złożeniu zamówienia
@@ -164,27 +156,6 @@ public class OrderController implements Serializable {
         }
     }
 
-    public void updateOrderStatus(Long orderId) {
-        if (selectedStatus == null) {
-            addErrorMessage("Wybierz nowy status");
-            return;
-        }
-
-        try {
-            orderService.updateOrderStatus(orderId, selectedStatus);
-            loadOrders(); // Odśwież listę zamówień
-            addInfoMessage("Status zamówienia został zaktualizowany");
-            logger.info("Order {} status updated to {}", orderId, selectedStatus);
-
-            // Reset selected status
-            selectedStatus = null;
-
-        } catch (Exception e) {
-            logger.error("Error updating order {} status", orderId, e);
-            addErrorMessage("Błąd podczas aktualizacji statusu: " + e.getMessage());
-        }
-    }
-
     public void cancelOrder(Long orderId) {
         try {
             orderService.cancelOrder(orderId);
@@ -198,69 +169,26 @@ public class OrderController implements Serializable {
         }
     }
 
-    public void selectOrder(Order order) {
-        this.selectedOrder = order;
-        logger.debug("Selected order: {}", order.getId());
-    }
-
-    public List<Order> getOrdersByStatus(OrderStatus status) {
-        if (authService.getCurrentUser() != null && authService.getCurrentUser().getRole() == Role.ADMIN) {
-            return orderService.getOrdersByStatus(status);
-        }
-        return new ArrayList<>();
-    }
-
-    public long getPendingOrdersCount() {
-        if (authService.getCurrentUser() != null && authService.getCurrentUser().getRole() == Role.ADMIN) {
-            return orderService.getPendingOrdersCount();
-        }
-        return 0;
-    }
-
     public boolean canCancelOrder(Order order) {
         if (order == null) return false;
 
         User currentUser = authService.getCurrentUser();
         if (currentUser == null) return false;
 
-        // Admin może anulować każde zamówienie (poza już anulowanymi i dostarczonymi)
+        // Admin może anulować każde zamówienie (poza już anulowanymi)
         if (currentUser.getRole() == Role.ADMIN) {
-            return order.getStatus() != OrderStatus.CANCELLED &&
-                    order.getStatus() != OrderStatus.DELIVERED;
+            return order.getStatus() != OrderStatus.CANCELLED;
         }
 
         // Użytkownik może anulować tylko swoje zamówienia
         if (order.getUser().getId().equals(currentUser.getId())) {
-            return order.getStatus() == OrderStatus.PENDING ||
-                    order.getStatus() == OrderStatus.CONFIRMED;
+            return order.getStatus() != OrderStatus.CANCELLED;
         }
 
         return false;
     }
 
-    public boolean canUpdateStatus(Order order) {
-        User currentUser = authService.getCurrentUser();
-        return currentUser != null &&
-                currentUser.getRole() == Role.ADMIN &&
-                order.getStatus() != OrderStatus.CANCELLED;
-    }
-
-    public OrderStatus[] getAvailableStatuses() {
-        return OrderStatus.values();
-    }
-
-    public String getOrderStatusStyle(OrderStatus status) {
-        return switch (status) {
-            case PENDING -> "background-color: #fff3cd; color: #856404;";
-            case CONFIRMED -> "background-color: #d4edda; color: #155724;";
-            case SHIPPED -> "background-color: #d1ecf1; color: #0c5460;";
-            case DELIVERED -> "background-color: #d1e7dd; color: #0f5132;";
-            case CANCELLED -> "background-color: #f8d7da; color: #721c24;";
-        };
-    }
-
     // Metody pomocnicze dla checkout
-
     public boolean isCheckoutValid() {
         User currentUser = authService.getCurrentUser();
         if (currentUser == null) {
@@ -316,8 +244,6 @@ public class OrderController implements Serializable {
                 addErrorMessage("Błąd podczas walidacji zamówienia");
             }
         }
-
-        // Jeśli dotrzemy tutaj, wszystko jest OK - nie dodajemy komunikatu sukcesu
     }
 
     public void prepopulateShippingAddress() {
@@ -326,6 +252,42 @@ public class OrderController implements Serializable {
             this.shippingAddress = currentUser.getAddress();
             addInfoMessage("Uzupełniono adres dostawy z Twojego profilu");
         }
+    }
+
+    // Pomocnicze metody do wyświetlania
+    public String getOrderStatusIcon(OrderStatus status) {
+        if (status == null) return "❓";
+
+        return switch (status) {
+            case PENDING -> "⏳";
+            case CONFIRMED -> "✅";
+            case SHIPPED -> "🚛";
+            case DELIVERED -> "📦";
+            case CANCELLED -> "❌";
+        };
+    }
+
+    public String getOrderStatusText(OrderStatus status) {
+        if (status == null) return "Nieznany";
+        return status.getDisplayName();
+    }
+
+    public String getOrderStatusClass(OrderStatus status) {
+        if (status == null) return "status-unknown";
+        return "status-" + status.name().toLowerCase();
+    }
+
+    // Metody debugowania
+    public String getOrdersDebugInfo() {
+        return String.format("Orders loaded: %d, Current user: %s",
+                userOrders != null ? userOrders.size() : 0,
+                authService.getCurrentUser() != null ? authService.getCurrentUser().getUsername() : "null");
+    }
+
+    public void forceReloadOrders() {
+        logger.info("Force reloading orders...");
+        loadOrders();
+        addInfoMessage("Zamówienia zostały ponownie załadowane. Znaleziono: " + userOrders.size());
     }
 
     // Gettery i settery
@@ -338,38 +300,21 @@ public class OrderController implements Serializable {
     }
 
     public List<Order> getUserOrders() {
-        return userOrders;
+        logger.debug("getUserOrders() called, returning {} orders", userOrders != null ? userOrders.size() : 0);
+
+        // Jeśli lista jest pusta, spróbuj załadować ponownie
+        if ((userOrders == null || userOrders.isEmpty()) && authService.getCurrentUser() != null) {
+            logger.debug("Orders list is empty, attempting to reload...");
+            loadOrders();
+        }
+
+        return userOrders != null ? userOrders : new ArrayList<>();
     }
 
     public void setUserOrders(List<Order> userOrders) {
         this.userOrders = userOrders;
     }
 
-    public List<Order> getAllOrders() {
-        return allOrders;
-    }
-
-    public void setAllOrders(List<Order> allOrders) {
-        this.allOrders = allOrders;
-    }
-
-    public Order getSelectedOrder() {
-        return selectedOrder;
-    }
-
-    public void setSelectedOrder(Order selectedOrder) {
-        this.selectedOrder = selectedOrder;
-    }
-
-    public OrderStatus getSelectedStatus() {
-        return selectedStatus;
-    }
-
-    public void setSelectedStatus(OrderStatus selectedStatus) {
-        this.selectedStatus = selectedStatus;
-    }
-
-    // NOWA METODA - getter dla checkoutValid
     public boolean getCheckoutValid() {
         return isCheckoutValid();
     }
