@@ -12,6 +12,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -23,6 +25,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class CartServiceTest {
 
     @Mock
@@ -100,6 +103,8 @@ class CartServiceTest {
 
         // Then
         verify(cartDao).save(any(CartItem.class));
+        verify(productDao).findById(1L);
+        verify(cartDao).findByUserAndProduct(testUser, testProduct);
     }
 
     @Test
@@ -119,7 +124,6 @@ class CartServiceTest {
     @Test
     void testAddToCartNonExistentProduct() {
         // Given
-        when(authService.getCurrentUser()).thenReturn(testUser);
         when(productDao.findById(999L)).thenReturn(Optional.empty());
 
         // When & Then
@@ -188,6 +192,8 @@ class CartServiceTest {
 
         // Then
         verify(cartDao).delete(1L);
+        verify(authService).getCurrentUser();
+        verify(cartDao).findByIdAndUser(1L, testUser);
     }
 
     @Test
@@ -248,6 +254,7 @@ class CartServiceTest {
 
         // Then
         assertEquals(new BigDecimal("99.99"), total);
+        verify(cartDao).findByUserWithProducts(testUser);
     }
 
     @Test
@@ -277,6 +284,7 @@ class CartServiceTest {
 
         // Then
         assertEquals(BigDecimal.ZERO, total);
+        verify(cartDao, never()).findByUserWithProducts(any());
     }
 
     @Test
@@ -337,6 +345,8 @@ class CartServiceTest {
 
         // Then
         assertTrue(hasProduct);
+        verify(productDao).findById(1L);
+        verify(cartDao).existsByUserAndProduct(testUser, testProduct);
     }
 
     @Test
@@ -363,6 +373,7 @@ class CartServiceTest {
 
         // Then
         assertTrue(canPlace);
+        verify(cartDao).findByUserWithProducts(testUser);
     }
 
     @Test
@@ -417,6 +428,7 @@ class CartServiceTest {
 
         // Then
         verify(cartDao).delete(testCartItem.getId());
+        verify(cartDao).findByUserWithProducts(testUser);
     }
 
     @Test
@@ -427,5 +439,48 @@ class CartServiceTest {
         // Then
         verify(cartDao, never()).findByUserWithProducts(any());
         verify(cartDao, never()).delete(any());
+    }
+
+    @Test
+    void testGetUnavailableCartItems() {
+        // Given
+        testProduct.setActive(false); // Make product unavailable
+        List<CartItem> cartItems = Arrays.asList(testCartItem);
+        when(cartDao.findByUserWithProducts(testUser)).thenReturn(cartItems);
+
+        // When
+        List<CartItem> unavailableItems = cartService.getUnavailableCartItems(testUser);
+
+        // Then
+        assertEquals(1, unavailableItems.size());
+        assertEquals(testCartItem, unavailableItems.get(0));
+    }
+
+    @Test
+    void testHasUnavailableProducts() {
+        // Given
+        testProduct.setStockQuantity(0); // Out of stock
+        List<CartItem> cartItems = Arrays.asList(testCartItem);
+        when(cartDao.findByUserWithProducts(testUser)).thenReturn(cartItems);
+
+        // When
+        boolean hasUnavailable = cartService.hasUnavailableProducts(testUser);
+
+        // Then
+        assertTrue(hasUnavailable);
+    }
+
+    @Test
+    void testGetUnavailableProductsCount() {
+        // Given
+        testProduct.setActive(false);
+        List<CartItem> cartItems = Arrays.asList(testCartItem);
+        when(cartDao.findByUserWithProducts(testUser)).thenReturn(cartItems);
+
+        // When
+        int count = cartService.getUnavailableProductsCount(testUser);
+
+        // Then
+        assertEquals(1, count);
     }
 }

@@ -71,9 +71,9 @@ public class ProductServiceImpl implements ProductServiceInterface {
 
         logger.debug("Adding new product: {}", product.getName());
 
-        // Ustaw domyślne wartości - poprawione aby zawsze były sensowne wartości
-        if (product.getStockQuantity() == null || product.getStockQuantity() < 0) {
-            product.setStockQuantity(10); // Domyślnie 10 sztuk zamiast 0
+        // Ustaw domyślne wartości - poprawiona logika
+        if (product.getStockQuantity() == null || product.getStockQuantity() <= 0) {
+            product.setStockQuantity(10); // Domyślnie 10 sztuk
             logger.debug("Set default stock quantity: 10 for product: {}", product.getName());
         }
 

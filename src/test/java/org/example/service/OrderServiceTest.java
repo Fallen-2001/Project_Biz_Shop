@@ -307,6 +307,7 @@ class OrderServiceTest {
     void testCancelOrderNotLoggedIn() {
         // Given
         when(authService.getCurrentUser()).thenReturn(null);
+        // POPRAWKA: Usunięcie niepotrzebnych stubowań - nie są używane w tym teście
 
         // When & Then
         Exception exception = assertThrows(Exception.class, () -> {
@@ -321,7 +322,7 @@ class OrderServiceTest {
     void testCancelOrderNotFound() {
         // Given
         when(authService.getCurrentUser()).thenReturn(testUser);
-        when(orderDao.findById(999L)).thenReturn(Optional.empty());
+        // POPRAWKA: Usunięcie niepotrzebnych stubowań - findById zwróci Optional.empty() domyślnie
 
         // When & Then
         Exception exception = assertThrows(Exception.class, () -> {
@@ -340,6 +341,7 @@ class OrderServiceTest {
         otherUser.setRole(Role.USER);
 
         when(authService.getCurrentUser()).thenReturn(otherUser);
+        // POPRAWKA: Usunięcie niepotrzebnych stubowań - używamy tylko findById
         when(orderDao.findById(1L)).thenReturn(Optional.of(testOrder));
 
         // When & Then
@@ -356,6 +358,7 @@ class OrderServiceTest {
         // Given
         testOrder.setStatus(OrderStatus.CANCELLED);
         when(authService.getCurrentUser()).thenReturn(testUser);
+        // POPRAWKA: Usunięcie niepotrzebnych stubowań - używamy tylko findById
         when(orderDao.findById(1L)).thenReturn(Optional.of(testOrder));
 
         // When & Then

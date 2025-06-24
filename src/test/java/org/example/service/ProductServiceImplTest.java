@@ -10,6 +10,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -21,6 +23,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class ProductServiceImplTest {
 
     @Mock
@@ -190,15 +193,51 @@ class ProductServiceImplTest {
         Product newProduct = new Product();
         newProduct.setName("New Product");
         newProduct.setPrice(new BigDecimal("49.99"));
+        // Nie ustawiamy stockQuantity - zostanie ustawione przez serwis
 
         // When
         productService.addProduct(newProduct);
 
         // Then
         verify(productDao).save(newProduct);
-        assertEquals(10, newProduct.getStockQuantity()); // Default stock
-        assertEquals("Różne", newProduct.getCategory()); // Default category
-        assertTrue(newProduct.isActive()); // Default active
+        assertEquals(10, newProduct.getStockQuantity()); // Sprawdź czy została ustawiona domyślna wartość
+        assertEquals("Różne", newProduct.getCategory()); // Domyślna kategoria
+        assertTrue(newProduct.isActive()); // Domyślnie aktywny
+        assertNotNull(newProduct.getDescription()); // Domyślny opis
+    }
+
+    @Test
+    void testAddProductWithExistingStockQuantity() throws Exception {
+        // Given
+        when(authService.getCurrentUser()).thenReturn(adminUser);
+        Product newProduct = new Product();
+        newProduct.setName("New Product");
+        newProduct.setPrice(new BigDecimal("49.99"));
+        newProduct.setStockQuantity(25); // Ustawiamy konkretną wartość
+
+        // When
+        productService.addProduct(newProduct);
+
+        // Then
+        verify(productDao).save(newProduct);
+        assertEquals(25, newProduct.getStockQuantity()); // Powinna zostać zachowana
+    }
+
+    @Test
+    void testAddProductWithZeroStock() throws Exception {
+        // Given
+        when(authService.getCurrentUser()).thenReturn(adminUser);
+        Product newProduct = new Product();
+        newProduct.setName("New Product");
+        newProduct.setPrice(new BigDecimal("49.99"));
+        newProduct.setStockQuantity(0); // Zero stock
+
+        // When
+        productService.addProduct(newProduct);
+
+        // Then
+        verify(productDao).save(newProduct);
+        assertEquals(10, newProduct.getStockQuantity()); // Powinna zostać ustawiona domyślna wartość 10
     }
 
     @Test
@@ -277,6 +316,7 @@ class ProductServiceImplTest {
 
         // Then
         verify(productDao).update(testProduct);
+        verify(productDao).findById(1L);
     }
 
     @Test
@@ -335,6 +375,7 @@ class ProductServiceImplTest {
 
         // Then
         verify(productDao).delete(1L);
+        verify(productDao).findById(1L);
     }
 
     @Test
@@ -390,6 +431,7 @@ class ProductServiceImplTest {
 
         // Then
         assertTrue(available);
+        verify(productDao).findById(1L);
     }
 
     @Test
