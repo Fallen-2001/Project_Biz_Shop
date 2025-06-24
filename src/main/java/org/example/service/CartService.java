@@ -193,124 +193,6 @@ public class CartService implements CartServiceInterface {
     // Dodatkowe metody pomocnicze
 
     /**
-     * Sprawdza dostępność wszystkich produktów w koszyku
-     */
-    public List<CartItem> getUnavailableCartItems(User user) {
-        if (user == null) {
-            return List.of();
-        }
-
-        try {
-            List<CartItem> cartItems = getCartItems(user);
-            return cartItems.stream()
-                    .filter(item -> {
-                        Product product = item.getProduct();
-                        return !product.isActive() || !product.isAvailable(item.getQuantity());
-                    })
-                    .toList();
-        } catch (Exception e) {
-            logger.error("Error getting unavailable cart items for user: {}", user.getUsername(), e);
-            return List.of();
-        }
-    }
-
-    /**
-     * Synchronizuje ilości w koszyku z dostępnością produktów
-     */
-    @Transactional
-    public void synchronizeCartWithStock(User user) {
-        if (user == null) {
-            logger.warn("Attempted to synchronize cart for null user");
-            return;
-        }
-
-        logger.debug("Synchronizing cart with stock for user: {}", user.getUsername());
-
-        try {
-            List<CartItem> cartItems = getCartItems(user);
-
-            for (CartItem item : cartItems) {
-                Product product = item.getProduct();
-
-                // Usuń nieaktywne produkty
-                if (!product.isActive()) {
-                    cartDao.delete(item.getId());
-                    logger.info("Removed inactive product {} from cart of user {}",
-                            product.getName(), user.getUsername());
-                    continue;
-                }
-
-                // Usuń produkty bez stanu magazynowego
-                if (product.getStockQuantity() == null) {
-                    cartDao.delete(item.getId());
-                    logger.info("Removed product {} with null stock from cart of user {}",
-                            product.getName(), user.getUsername());
-                    continue;
-                }
-
-                // Dostosuj ilość do dostępności
-                if (item.getQuantity() > product.getStockQuantity()) {
-                    if (product.getStockQuantity() > 0) {
-                        // Ogranicz ilość do dostępnej
-                        int newQuantity = Math.min(product.getStockQuantity(), 10); // Max 10 sztuk
-                        item.setQuantity(newQuantity);
-                        cartDao.updateAndRefresh(item);
-                        logger.info("Adjusted quantity for product {} in cart of user {} to {}",
-                                product.getName(), user.getUsername(), newQuantity);
-                    } else {
-                        // Usuń wyprzedane produkty
-                        cartDao.delete(item.getId());
-                        logger.info("Removed out-of-stock product {} from cart of user {}",
-                                product.getName(), user.getUsername());
-                    }
-                }
-
-                // Sprawdź maksymalną dozwoloną ilość
-                if (item.getQuantity() > 10) {
-                    item.setQuantity(10);
-                    cartDao.updateAndRefresh(item);
-                    logger.info("Limited quantity for product {} in cart of user {} to 10",
-                            product.getName(), user.getUsername());
-                }
-            }
-
-            logger.info("Cart synchronization completed for user: {}", user.getUsername());
-
-        } catch (Exception e) {
-            logger.error("Error synchronizing cart for user: {}", user.getUsername(), e);
-            throw new RuntimeException("Błąd podczas synchronizacji koszyka", e);
-        }
-    }
-
-    /**
-     * Sprawdza czy można złożyć zamówienie z aktualnym koszykiem
-     */
-    public boolean canPlaceOrder(User user) {
-        if (user == null) {
-            return false;
-        }
-
-        try {
-            List<CartItem> cartItems = getCartItems(user);
-
-            if (cartItems.isEmpty()) {
-                return false;
-            }
-
-            return cartItems.stream().allMatch(item -> {
-                Product product = item.getProduct();
-                return product.isActive() &&
-                        product.getStockQuantity() != null &&
-                        product.isAvailable(item.getQuantity());
-            });
-
-        } catch (Exception e) {
-            logger.error("Error checking if can place order for user: {}", user.getUsername(), e);
-            return false;
-        }
-    }
-
-    /**
      * Pobiera elementy koszyka z blokadą (do operacji krytycznych)
      */
     @Transactional
@@ -461,5 +343,137 @@ public class CartService implements CartServiceInterface {
         public int getTotalQuantity() { return totalQuantity; }
         public BigDecimal getTotalValue() { return totalValue; }
         public boolean isCanPlaceOrder() { return canPlaceOrder; }
+    }
+
+    @Override
+    public boolean canPlaceOrder(User user) {
+        if (user == null) {
+            return false;
+        }
+
+        try {
+            List<CartItem> cartItems = getCartItems(user);
+
+            if (cartItems.isEmpty()) {
+                return false;
+            }
+
+            return cartItems.stream().allMatch(item -> {
+                Product product = item.getProduct();
+                return product.isActive() &&
+                        product.getStockQuantity() != null &&
+                        product.isAvailable(item.getQuantity());
+            });
+
+        } catch (Exception e) {
+            logger.error("Error checking if can place order for user: {}", user.getUsername(), e);
+            return false;
+        }
+    }
+
+    @Override
+    @Transactional
+    public void synchronizeCartWithStock(User user) {
+        if (user == null) {
+            logger.warn("Attempted to synchronize cart for null user");
+            return;
+        }
+
+        logger.debug("Synchronizing cart with stock for user: {}", user.getUsername());
+
+        try {
+            List<CartItem> cartItems = getCartItems(user);
+
+            for (CartItem item : cartItems) {
+                Product product = item.getProduct();
+
+                // Usuń nieaktywne produkty
+                if (!product.isActive()) {
+                    cartDao.delete(item.getId());
+                    logger.info("Removed inactive product {} from cart of user {}",
+                            product.getName(), user.getUsername());
+                    continue;
+                }
+
+                // Usuń produkty bez stanu magazynowego
+                if (product.getStockQuantity() == null) {
+                    cartDao.delete(item.getId());
+                    logger.info("Removed product {} with null stock from cart of user {}",
+                            product.getName(), user.getUsername());
+                    continue;
+                }
+
+                // Dostosuj ilość do dostępności
+                if (item.getQuantity() > product.getStockQuantity()) {
+                    if (product.getStockQuantity() > 0) {
+                        // Ogranicz ilość do dostępnej
+                        int newQuantity = Math.min(product.getStockQuantity(), 10); // Max 10 sztuk
+                        item.setQuantity(newQuantity);
+                        cartDao.updateAndRefresh(item);
+                        logger.info("Adjusted quantity for product {} in cart of user {} to {}",
+                                product.getName(), user.getUsername(), newQuantity);
+                    } else {
+                        // Usuń wyprzedane produkty
+                        cartDao.delete(item.getId());
+                        logger.info("Removed out-of-stock product {} from cart of user {}",
+                                product.getName(), user.getUsername());
+                    }
+                }
+
+                // Sprawdź maksymalną dozwoloną ilość
+                if (item.getQuantity() > 10) {
+                    item.setQuantity(10);
+                    cartDao.updateAndRefresh(item);
+                    logger.info("Limited quantity for product {} in cart of user {} to 10",
+                            product.getName(), user.getUsername());
+                }
+            }
+
+            logger.info("Cart synchronization completed for user: {}", user.getUsername());
+
+        } catch (Exception e) {
+            logger.error("Error synchronizing cart for user: {}", user.getUsername(), e);
+            throw new RuntimeException("Błąd podczas synchronizacji koszyka", e);
+        }
+    }
+
+    @Override
+    public List<CartItem> getUnavailableCartItems(User user) {
+        if (user == null) {
+            return List.of();
+        }
+
+        try {
+            List<CartItem> cartItems = getCartItems(user);
+            return cartItems.stream()
+                    .filter(item -> {
+                        Product product = item.getProduct();
+                        return !product.isActive() || !product.isAvailable(item.getQuantity());
+                    })
+                    .toList();
+        } catch (Exception e) {
+            logger.error("Error getting unavailable cart items for user: {}", user.getUsername(), e);
+            return List.of();
+        }
+    }
+
+    @Override
+    public boolean hasUnavailableProducts(User user) {
+        try {
+            return !getUnavailableCartItems(user).isEmpty();
+        } catch (Exception e) {
+            logger.error("Error checking if user {} has unavailable products", user.getUsername(), e);
+            return false;
+        }
+    }
+
+    @Override
+    public int getUnavailableProductsCount(User user) {
+        try {
+            return getUnavailableCartItems(user).size();
+        } catch (Exception e) {
+            logger.error("Error getting unavailable products count for user: {}", user.getUsername(), e);
+            return 0;
+        }
     }
 }

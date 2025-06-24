@@ -603,7 +603,7 @@
         </h:panelGroup>
 
         <!-- Koszyk -->
-        <h:panelGroup rendered="#{cartController.cartItems.size() > 0}">
+        <h:panelGroup rendered="#{not empty cartController.cartItems}">
             <div class="cart-container">
                 <!-- Lista produktów -->
                 <div class="cart-items">
@@ -612,8 +612,26 @@
                     </div>
 
                     <h:form id="cartForm">
-                        <!-- UŻYJ ui:repeat zamiast innych iteratorów -->
-                        <ui:repeat value="#{cartController.cartItems}" var="item">
+                        <!-- SPRAWDŹ czy ta sekcja się renderuje -->
+                        <div style="background: #e7f3ff; padding: 1rem; margin-bottom: 1rem; border-radius: 5px;">
+                            <strong>🎯 RENDER TEST:</strong> Ta sekcja się renderuje!<br/>
+                            <strong>Liczba produktów:</strong> #{cartController.cartItems.size()}<br/>
+                            <strong>Pierwszy produkt:</strong>
+                            <h:panelGroup rendered="#{not empty cartController.cartItems}">
+                                #{cartController.cartItems[0].product.name}
+                            </h:panelGroup>
+                        </div>
+
+                        <!-- UŻYJ ui:repeat z dodatkowym debugiem -->
+                        <ui:repeat value="#{cartController.cartItems}" var="item" varStatus="status">
+                            <!-- Debug dla każdego elementu -->
+                            <div style="background: #f0f8f0; padding: 0.5rem; margin-bottom: 0.5rem; border-radius: 3px; font-size: 0.8rem;">
+                                <strong>DEBUG Item #{status.index + 1}:</strong>
+                                ID=#{item.id},
+                                Product=#{item.product.name},
+                                Price=#{item.product.price}
+                            </div>
+
                             <div class="cart-item" id="cartItem_#{item.id}">
                                 <!-- Obrazek -->
                                 <div class="item-image">
@@ -680,7 +698,7 @@
                     </h:form>
                 </div>
 
-                <!-- Podsumowanie - zawsze pokaż jeśli są produkty -->
+                <!-- Podsumowanie - TAKŻE zmień warunek -->
                 <div class="cart-summary">
                     <h3 class="summary-header">📊 Podsumowanie zamówienia</h3>
 
@@ -726,8 +744,8 @@
             </div>
         </h:panelGroup>
 
-        <!-- Pusty koszyk - pokaż tylko gdy NIE MA produktów -->
-        <h:panelGroup rendered="#{cartController.cartItems.size() == 0}">
+        <!-- TAKŻE zmień warunek dla pustego koszyka: -->
+        <h:panelGroup rendered="#{empty cartController.cartItems}">
             <div class="empty-cart">
                 <h3>🛒 Twój koszyk jest pusty</h3>
                 <p>Dodaj produkty do koszyka, aby móc złożyć zamówienie.</p>

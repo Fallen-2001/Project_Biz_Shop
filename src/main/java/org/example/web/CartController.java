@@ -295,4 +295,77 @@ public class CartController implements Serializable {
         FacesContext.getCurrentInstance().addMessage(null,
                 new FacesMessage(FacesMessage.SEVERITY_ERROR, "Błąd", message));
     }
+
+    public boolean isCanPlaceOrder() {
+        User currentUser = authService.getCurrentUser();
+        if (currentUser == null) {
+            return false;
+        }
+
+        try {
+            return cartService.canPlaceOrder(currentUser);
+        } catch (Exception e) {
+            logger.error("Error checking if can place order", e);
+            return false;
+        }
+    }
+
+    /**
+     * Alias dla JSF EL (canPlaceOrder zamiast isCanPlaceOrder)
+     */
+    public boolean getCanPlaceOrder() {
+        return isCanPlaceOrder();
+    }
+
+    /**
+     * Synchronizuje koszyk z dostępnością produktów
+     */
+    public void synchronizeCart() {
+        User currentUser = authService.getCurrentUser();
+        if (currentUser != null) {
+            try {
+                cartService.synchronizeCartWithStock(currentUser);
+                loadCart(); // Odśwież koszyk po synchronizacji
+                addInfoMessage("Koszyk został zsynchronizowany");
+
+            } catch (Exception e) {
+                logger.error("Error synchronizing cart", e);
+                addErrorMessage("Błąd podczas synchronizacji koszyka: " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Sprawdza dostępność produktów w koszyku
+     */
+    public boolean hasUnavailableProducts() {
+        User currentUser = authService.getCurrentUser();
+        if (currentUser == null) {
+            return false;
+        }
+
+        try {
+            return cartService.hasUnavailableProducts(currentUser);
+        } catch (Exception e) {
+            logger.error("Error checking unavailable products", e);
+            return false;
+        }
+    }
+
+    /**
+     * Pobiera liczbę niedostępnych produktów
+     */
+    public int getUnavailableProductsCount() {
+        User currentUser = authService.getCurrentUser();
+        if (currentUser == null) {
+            return 0;
+        }
+
+        try {
+            return cartService.getUnavailableProductsCount(currentUser);
+        } catch (Exception e) {
+            logger.error("Error getting unavailable products count", e);
+            return 0;
+        }
+    }
 }
